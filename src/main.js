@@ -19,7 +19,7 @@ initPointerLock(canvas);
 
 const renderer = new Renderer(canvas, camera);
 const world = new World();
-addGameObject(world);
+world.init();
 
 let lastTime = 0;
 
