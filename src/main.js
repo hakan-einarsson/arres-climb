@@ -15,9 +15,10 @@ app.appendChild(canvas);
 canvas.style.display = 'block';
 canvas.style.margin = '0 auto';
 
+const aspectRatio = canvas.width / canvas.height;
 initPointerLock(canvas);
 
-const renderer = new Renderer(canvas, camera);
+const renderer = new Renderer(canvas, camera, aspectRatio);
 const world = new World();
 world.init();
 

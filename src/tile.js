@@ -1,16 +1,6 @@
 // tile.js (eller block.js)
 import { worldToView } from './projection.js';
 
-// const texW = 128;
-// const texH = 32;
-// const epsU = 0.5 / texW;  // ~0.0039
-// const epsV = 0.5 / texH;  // ~0.0156
-
-// const GRASS_UV = { u0: 0.0625 + epsU, v0: 0.0 + epsV, u1: 0.125 - epsU, v1: 0.25 - epsV };
-// const DIRT_UV = { u0: 0.0 + epsU, v0: 0.0 + epsV, u1: 0.0625 - epsU, v1: 0.25 - epsV };
-// const GRASS_UV = { u0: 0.0625, v0: 0.0, u1: 0.125, v1: 0.25 }; // topp
-// const DIRT_UV = { u0: 0.0, v0: 0.0, u1: 0.0625, v1: 0.25 };    // sidor/botten
-
 const texW = 128;
 const texH = 32;
 const tileSize = 8; // storlek på varje sprite i atlasen, i pixlar
@@ -100,13 +90,27 @@ class Tile {
         this.gridX = gridX;
         this.gridZ = gridZ;
         this.type = type;
+        this.cachedBlock = null;
+    }
+
+    isVisible(camera) {
+        // Simple frustum culling: check if tile is within view distance
+        const dx = this.gridX * 0.5 - camera.x;
+        const dz = this.gridZ * 0.5 - camera.z;
+        const distSq = dx * dx + dz * dz;
+        return distSq < 300; // ~20 unit radius from camera
     }
 
     render(renderer) {
-        if (this.type === 'HOLE') return; // hål, rita inget
+        if (this.type === 'HOLE') return;
+        if (!this.isVisible(renderer.camera)) return;
 
         const camera = renderer.camera;
-        const block = createBlock(this.gridX, this.gridZ, this.type);
+
+        if (!this.cachedBlock) {
+            this.cachedBlock = createBlock(this.gridX, this.gridZ, this.type);
+        }
+        const block = this.cachedBlock;
 
         for (let i = 0; i < block.length; i += 3) {
             const tri = projectTriangle(block[i], block[i + 1], block[i + 2], camera);

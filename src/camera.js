@@ -6,7 +6,7 @@ function rotateY(x, z, angle) {
 
 class Camera {
     constructor() {
-        this.x = 0; this.y = 5; this.z = -9;
+        this.x = 0; this.y = 2; this.z = -9;
         this.yaw = 0; this.pitch = 0;
         this.maxPitch = Math.PI / 2 - 0.01;
     }

@@ -18,7 +18,7 @@ export function initPointerLock(canvas) {
 
 export function update(dt) {
     const sensitivity = 0.002;
-    const maxMouseDeltaPerFrame = 20;
+    const maxMouseDeltaPerFrame = 50;
 
     const dx = Math.max(-maxMouseDeltaPerFrame, Math.min(maxMouseDeltaPerFrame, mouseDelta.x));
     const dy = Math.max(-maxMouseDeltaPerFrame, Math.min(maxMouseDeltaPerFrame, mouseDelta.y));

@@ -3,8 +3,9 @@ import { fragmentShaderSource } from './fragmentShaderSource.js';
 // import { buildFrame } from './world.js';
 
 class Renderer {
-    constructor(canvas, camera) {
+    constructor(canvas, camera, aspectRatio = 1.0) {
         this.camera = camera;
+        this.aspectRatio = aspectRatio;
         this.gl = canvas.getContext('webgl2');
         if (!this.gl) {
             console.error('WebGL not supported');
@@ -55,6 +56,8 @@ class Renderer {
 
         const uFocalLengthLoc = this.gl.getUniformLocation(program, 'u_focalLength');
         this.gl.uniform1f(uFocalLengthLoc, 1.5);
+        const uAspectRatioLoc = this.gl.getUniformLocation(program, 'u_aspectRatio');
+        this.gl.uniform1f(uAspectRatioLoc, aspectRatio);
         const uNearLoc = this.gl.getUniformLocation(program, 'u_near');
         const uFarLoc = this.gl.getUniformLocation(program, 'u_far');
         this.gl.uniform1f(uNearLoc, 0.3);   // samma som din NEAR-tröskel
@@ -108,7 +111,7 @@ class Renderer {
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
 
-        this.objectsToRender.sort((a, b) => b.depth - a.depth);
+        // this.objectsToRender.sort((a, b) => b.depth - a.depth);
 
         const flat = [];
         for (const obj of this.objectsToRender) {
