@@ -3,11 +3,13 @@ import { update } from './update.js';
 import { render } from './render.js';
 import { camera } from './camera.js';
 import Renderer from './renderer.js';
-import { mouseDelta, initPointerLock } from './input.js';
+import { initPointerLock } from './input.js';
+import World from './world.js';
+import { gameObjects, addGameObject } from './gameObjects.js';
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');
-canvas.width = window.innerWidth;
+canvas.width = window.innerHeight * (16 / 9); // 16:9 aspect ratio
 canvas.height = window.innerHeight;
 app.appendChild(canvas);
 canvas.style.display = 'block';
@@ -16,6 +18,8 @@ canvas.style.margin = '0 auto';
 initPointerLock(canvas);
 
 const renderer = new Renderer(canvas, camera);
+const world = new World();
+addGameObject(world);
 
 let lastTime = 0;
 

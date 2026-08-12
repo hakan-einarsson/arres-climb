@@ -1,3 +1,9 @@
+import { gameObjects } from './gameObjects.js';
+
 export function init() {
-    console.log('Initializing game...');
+    gameObjects.forEach(obj => {
+        if (typeof obj.init === 'function') {
+            obj.init();
+        }
+    });
 }

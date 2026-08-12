@@ -1,6 +1,6 @@
 import { vertexShaderSource } from './vertexShaderSource.js';
 import { fragmentShaderSource } from './fragmentShaderSource.js';
-import { buildFrame } from './world.js';
+// import { buildFrame } from './world.js';
 
 class Renderer {
     constructor(canvas, camera) {

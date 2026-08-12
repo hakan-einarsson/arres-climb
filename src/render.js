@@ -1,5 +1,9 @@
-import { render as renderWorld } from './world.js';
+import { gameObjects } from './gameObjects.js';
 
 export function render(renderer) {
-    renderWorld(renderer);
+    gameObjects.forEach(obj => {
+        if (typeof obj.render === 'function') {
+            obj.render(renderer);
+        }
+    });
 }

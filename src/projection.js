@@ -25,3 +25,13 @@ export function worldToScreen(x, y, z, camera, focalLength) {
     const [vx, vy, vz] = worldToView(x, y, z, camera);
     return project(vx, vy, vz, focalLength);
 }
+
+export function projectTriangle(p1, p2, p3, camera, focalLength) {
+    const a = worldToScreen(p1[0], p1[1], p1[2], camera, focalLength);
+    const b = worldToScreen(p2[0], p2[1], p2[2], camera, focalLength);
+    const c = worldToScreen(p3[0], p3[1], p3[2], camera, focalLength);
+
+    if (!a || !b || !c) return null; // nån punkt bakom/nära kameran -> skippa hela triangeln
+
+    return [a[0], a[1], b[0], b[1], c[0], c[1]];
+}
