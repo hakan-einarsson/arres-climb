@@ -22,6 +22,10 @@ class Camera {
         this.x += rotX * speed;
         this.z += rotZ * speed;
     }
+
+    moveY(dy, speed) {
+        this.y += dy * speed;
+    }
 }
 
 export const camera = new Camera();

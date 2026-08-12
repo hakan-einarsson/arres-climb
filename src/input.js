@@ -29,11 +29,14 @@ export function update(dt) {
     mouseDelta.y = 0;
 
     const speed = 3 * dt;
-    let moveX = 0, moveZ = 0;
+    let moveX = 0, moveZ = 0, moveY = 0;
     if (keys['w']) moveZ += 1;
     if (keys['s']) moveZ -= 1;
     if (keys['a']) moveX -= 1;
     if (keys['d']) moveX += 1;
+    if (keys['q']) moveY += 1;
+    if (keys['e']) moveY -= 1;
 
     camera.move(moveX, moveZ, speed);
+    camera.moveY(moveY, speed);
 }

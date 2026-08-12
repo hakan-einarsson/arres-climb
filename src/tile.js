@@ -26,12 +26,12 @@ const textureAtlas = {
 };
 
 
-function createBlock(gridX, gridZ, type = 'GRASS', tileSize = 0.5, height = 0.5) {
+function createBlock(gridX, gridY, gridZ, type = 'GRASS', tileSize = 0.5, height = 0.5) {
     const x0 = gridX * tileSize;
     const x1 = x0 + tileSize;
     const z0 = gridZ * tileSize;
     const z1 = z0 + tileSize;
-    const y0 = 0;
+    const y0 = gridY * height;
     const y1 = y0 + height;
 
     const { u0: gu0, v0: gv0, u1: gu1, v1: gv1 } = textureAtlas[type].top;
@@ -86,19 +86,21 @@ function projectTriangle(p1, p2, p3, camera) {
 }
 
 class Tile {
-    constructor(gridX, gridZ, type = 1) {
+    constructor(gridX, gridY, gridZ, type = 1) {
         this.gridX = gridX;
+        this.gridY = gridY;
         this.gridZ = gridZ;
         this.type = type;
         this.cachedBlock = null;
     }
 
     isVisible(camera) {
-        // Simple frustum culling: check if tile is within view distance
+        // Simple frustum culling: check if block is within view distance
         const dx = this.gridX * 0.5 - camera.x;
+        const dy = this.gridY * 0.5 - camera.y;
         const dz = this.gridZ * 0.5 - camera.z;
-        const distSq = dx * dx + dz * dz;
-        return distSq < 300; // ~20 unit radius from camera
+        const distSq = dx * dx + dy * dy + dz * dz;
+        return distSq < 400; // ~20 unit radius from camera
     }
 
     render(renderer) {
@@ -108,7 +110,7 @@ class Tile {
         const camera = renderer.camera;
 
         if (!this.cachedBlock) {
-            this.cachedBlock = createBlock(this.gridX, this.gridZ, this.type);
+            this.cachedBlock = createBlock(this.gridX, this.gridY, this.gridZ, this.type);
         }
         const block = this.cachedBlock;
 

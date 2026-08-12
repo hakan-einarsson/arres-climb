@@ -8,19 +8,31 @@ const tileTypes = {
 };
 
 class World {
-    constructor(size = 32, holeChance = 0.1, space = 0.1) {
+    constructor(size = 64, holeChance = 0.1, maxHeight = 4) {
         this.size = size;
         this.holeChance = holeChance;
-        this.space = space;
+        this.maxHeight = maxHeight;
+        this.heightMap = new Map();
     }
 
     init() {
+        // Generate random heights for each (x, z) column
         for (let z = 0; z < this.size; z++) {
             for (let x = 0; x < this.size; x++) {
-                // type shoujld be 0, 1, or 2
-                const type = Math.random() < this.holeChance ? tileTypes[0] : (Math.random() < 0.5 ? tileTypes[1] : tileTypes[2]);
-                const tile = new Tile(x - this.size / 2, z - this.size / 2, type, this.space);
-                addGameObject(tile);
+                const height = Math.floor(Math.random() * this.maxHeight) + 1;
+                this.heightMap.set(`${x},${z}`, height);
+            }
+        }
+
+        // Create blocks at each (x, y, z) position
+        for (let z = 0; z < this.size; z++) {
+            for (let x = 0; x < this.size; x++) {
+                const height = this.heightMap.get(`${x},${z}`);
+                for (let y = 0; y < height; y++) {
+                    const type = Math.random() < this.holeChance ? tileTypes[0] : (Math.random() < 0.5 ? tileTypes[1] : tileTypes[2]);
+                    const tile = new Tile(x - this.size / 2, y, z - this.size / 2, type);
+                    addGameObject(tile);
+                }
             }
         }
     }
