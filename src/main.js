@@ -26,16 +26,6 @@ addGameObject(player);
 
 let lastTime = 0;
 
-// function gameLoop(time) {
-//   const dt = (time - lastTime) / 1000; // sekunder
-//   lastTime = time;
-
-//   update(dt);
-//   render(renderer);
-//   renderer.draw();
-
-//   requestAnimationFrame(gameLoop);
-// }
 function gameLoop(time) {
   let dt = (time - lastTime) / 1000;
   dt = Math.min(dt, 1 / 30); // aldrig hoppa mer än vad 30fps skulle motsvara

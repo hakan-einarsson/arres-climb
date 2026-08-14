@@ -57,6 +57,12 @@ export function update() {
     if (keys['a']) moveX -= 1;
     if (keys['d']) moveX += 1;
 
+    const moveLength = Math.hypot(moveX, moveZ);
+    if (moveLength > 0) {
+        moveX /= moveLength;
+        moveZ /= moveLength;
+    }
+
     const [rotX, rotZ] = rotateY(moveX, moveZ, camera.yaw);
     player.vx = rotX * player.speed;
     player.vz = rotZ * player.speed;
