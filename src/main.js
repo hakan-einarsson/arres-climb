@@ -6,6 +6,7 @@ import Renderer from './renderer.js';
 import { initPointerLock } from './input.js';
 import World from './world.js';
 import { gameObjects, addGameObject } from './gameObjects.js';
+import Player from './player.js';
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');
@@ -21,6 +22,8 @@ initPointerLock(canvas);
 const renderer = new Renderer(canvas, camera, aspectRatio);
 const world = new World();
 world.init();
+const player = new Player(0, 1, 0);
+addGameObject(player);
 
 let lastTime = 0;
 

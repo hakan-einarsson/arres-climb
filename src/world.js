@@ -8,7 +8,7 @@ const tileTypes = {
 };
 
 class World {
-    constructor(size = 64, holeChance = 0.1, maxHeight = 4) {
+    constructor(size = 16, holeChance = 0.1, maxHeight = 2) {
         this.size = size;
         this.holeChance = holeChance;
         this.maxHeight = maxHeight;
