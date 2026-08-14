@@ -21,7 +21,7 @@ export function rotateY(x, z, angle) {
 // }
 
 export function update(dt) {
-    inputUpdate(dt); // sätter fortfarande player.vx/vz baserat på WASD, camera.rotate baserat på mus
+    inputUpdate(); // sätter fortfarande player.vx/vz baserat på WASD, camera.rotate baserat på mus
 
     updatePhysics(player, dt);
     // console.log(player.vx, player.vz, player.x, player.z)

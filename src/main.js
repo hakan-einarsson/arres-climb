@@ -5,7 +5,7 @@ import { camera } from './camera.js';
 import Renderer from './renderer.js';
 import { initPointer } from './input.js';
 import World from './world.js';
-import { gameObjects, addGameObject } from './gameObjects.js';
+import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
 
 const app = document.getElementById('app');

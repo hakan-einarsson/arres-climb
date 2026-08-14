@@ -49,8 +49,6 @@ function moveAxis(entity, axis, delta) {
     entity[axis] = testPos[axis];
 }
 
-const JUMP_FORCE = 5;
-
 export function updatePhysics(entity, dt) {
     entity.grounded = false;
 

@@ -11,7 +11,6 @@ function getUV(col, row) {
     return { u0: u0 + epsU, v0: v0 + epsV, u1: u1 - epsU, v1: v1 - epsV };
 }
 
-const PLAYER_RUN_UV = [getUV(0, 1), getUV(1, 1), getUV(2, 1), getUV(3, 1)];
 const PLAYER_IDLE_UV = [getUV(4, 1), getUV(5, 1)];
 
 function projectBillboard(x, y, z, camera, width, height, uv) {
@@ -54,12 +53,6 @@ function projectBillboard(x, y, z, camera, width, height, uv) {
     return { vertices, depth };
 }
 
-function rotateY(x, z, angle) {
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    return [x * cos - z * sin, x * sin + z * cos];
-}
-
 class Player {
     constructor(x, y, z) {
         this.x = x; this.y = y; this.z = z;
@@ -70,12 +63,6 @@ class Player {
         this.jumpBufferTimer = 0;
         this.jumpForce = 3.3;
         this.speed = 1.5
-    }
-
-    move(moveX, moveZ, yaw, speed) {
-        const [rotX, rotZ] = rotateY(moveX, moveZ, yaw);
-        this.x += rotX * speed;
-        this.z += rotZ * speed;
     }
 
     render(renderer) {

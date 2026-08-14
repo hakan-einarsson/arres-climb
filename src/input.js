@@ -41,7 +41,7 @@ export function initPointer(canvas) {
     });
 }
 
-export function update(dt) {
+export function update() {
     const sensitivity = 0.002;
     const maxMouseDeltaPerFrame = 20;
 
@@ -51,15 +51,6 @@ export function update(dt) {
     mouseDelta.x = 0;
     mouseDelta.y = 0;
 
-    // const speed = 3 * dt;
-    // let moveX = 0, moveZ = 0;
-    // if (keys['w']) moveZ += 1;
-    // if (keys['s']) moveZ -= 1;
-    // if (keys['a']) moveX -= 1;
-    // if (keys['d']) moveX += 1;
-
-    // player.move(moveX, moveZ, camera.yaw, speed);
-    const speed = 3;
     let moveX = 0, moveZ = 0;
     if (keys['w']) moveZ += 1;
     if (keys['s']) moveZ -= 1;
