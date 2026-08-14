@@ -1,15 +1,40 @@
 import { camera } from './camera.js';
+import { player } from './player.js';
+import { rotateY } from './update.js';
 
 const keys = {};
-window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
-window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+const leftMouseDown = { value: false };
+const JUMP_CUTOFF_FACTOR = 0.4; // hur mycket vy behålls om du släpper tidigt
+window.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
+
+    if (e.code === 'Space') {
+        player.jumpBufferTimer = 0.1;
+    }
+});
+window.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+
+    if (e.code === 'Space' && player.vy > 0) {
+        player.vy *= JUMP_CUTOFF_FACTOR; // jump cutoff, oförändrad
+    }
+});
+
 
 const mouseDelta = { x: 0, y: 0 };
 
-export function initPointerLock(canvas) {
-    canvas.addEventListener('click', () => canvas.requestPointerLock());
+export function initPointer(canvas) {
+    canvas.addEventListener('mousedown', (e) => {
+        if (e.button === 0) {
+            leftMouseDown.value = true;
+        }
+    });
+    window.addEventListener('mouseup', (e) => {
+        if (e.button === 0) leftMouseDown.value = false;
+    });
+
     document.addEventListener('mousemove', (e) => {
-        if (document.pointerLockElement === canvas) {
+        if (leftMouseDown.value) {
             mouseDelta.x += e.movementX;
             mouseDelta.y += e.movementY;
         }
@@ -18,25 +43,32 @@ export function initPointerLock(canvas) {
 
 export function update(dt) {
     const sensitivity = 0.002;
-    const maxMouseDeltaPerFrame = 50;
+    const maxMouseDeltaPerFrame = 20;
 
     const dx = Math.max(-maxMouseDeltaPerFrame, Math.min(maxMouseDeltaPerFrame, mouseDelta.x));
     const dy = Math.max(-maxMouseDeltaPerFrame, Math.min(maxMouseDeltaPerFrame, mouseDelta.y));
-
     camera.rotate(dx * sensitivity, dy * sensitivity);
-
     mouseDelta.x = 0;
     mouseDelta.y = 0;
 
-    const speed = 3 * dt;
-    let moveX = 0, moveZ = 0, moveY = 0;
+    // const speed = 3 * dt;
+    // let moveX = 0, moveZ = 0;
+    // if (keys['w']) moveZ += 1;
+    // if (keys['s']) moveZ -= 1;
+    // if (keys['a']) moveX -= 1;
+    // if (keys['d']) moveX += 1;
+
+    // player.move(moveX, moveZ, camera.yaw, speed);
+    const speed = 3;
+    let moveX = 0, moveZ = 0;
     if (keys['w']) moveZ += 1;
     if (keys['s']) moveZ -= 1;
     if (keys['a']) moveX -= 1;
     if (keys['d']) moveX += 1;
-    if (keys['q']) moveY += 1;
-    if (keys['e']) moveY -= 1;
 
-    camera.move(moveX, moveZ, speed);
-    camera.moveY(moveY, speed);
+    const [rotX, rotZ] = rotateY(moveX, moveZ, camera.yaw);
+    player.vx = rotX * player.speed;
+    player.vz = rotZ * player.speed;
+
+    camera.followTarget(player); // sista steget varje frame: synka kamerans position till spelaren
 }

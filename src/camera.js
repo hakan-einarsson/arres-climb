@@ -1,14 +1,11 @@
-function rotateY(x, z, angle) {
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    return [x * cos - z * sin, x * sin + z * cos];
-}
-
 class Camera {
     constructor() {
-        this.x = 0; this.y = 2; this.z = -9;
-        this.yaw = 0; this.pitch = 0;
+        this.x = 0; this.y = 0; this.z = 0;
+        this.yaw = 0;
+        this.pitch = 0.3;
+        this.distance = 3;
         this.maxPitch = Math.PI / 2 - 0.01;
+        this.eyeHeight = 0.5;
     }
 
     rotate(dYaw, dPitch) {
@@ -17,14 +14,11 @@ class Camera {
         this.pitch = Math.max(-this.maxPitch, Math.min(this.maxPitch, this.pitch));
     }
 
-    move(moveX, moveZ, speed) {
-        const [rotX, rotZ] = rotateY(moveX, moveZ, this.yaw);
-        this.x += rotX * speed;
-        this.z += rotZ * speed;
-    }
-
-    moveY(dy, speed) {
-        this.y += dy * speed;
+    followTarget(target) {
+        const cosPitch = Math.cos(this.pitch);
+        this.x = target.x + this.distance * Math.sin(this.yaw) * cosPitch;  // + istället för -
+        this.y = target.y + this.eyeHeight + this.distance * Math.sin(this.pitch);
+        this.z = target.z - this.distance * Math.cos(this.yaw) * cosPitch;  // oförändrad
     }
 }
 

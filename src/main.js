@@ -3,10 +3,10 @@ import { update } from './update.js';
 import { render } from './render.js';
 import { camera } from './camera.js';
 import Renderer from './renderer.js';
-import { initPointerLock } from './input.js';
+import { initPointer } from './input.js';
 import World from './world.js';
 import { gameObjects, addGameObject } from './gameObjects.js';
-import Player from './player.js';
+import { player } from './player.js';
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');
@@ -17,18 +17,28 @@ canvas.style.display = 'block';
 canvas.style.margin = '0 auto';
 
 const aspectRatio = canvas.width / canvas.height;
-initPointerLock(canvas);
+initPointer(canvas);
 
 const renderer = new Renderer(canvas, camera, aspectRatio);
 const world = new World();
 world.init();
-const player = new Player(0, 1, 0);
 addGameObject(player);
 
 let lastTime = 0;
 
+// function gameLoop(time) {
+//   const dt = (time - lastTime) / 1000; // sekunder
+//   lastTime = time;
+
+//   update(dt);
+//   render(renderer);
+//   renderer.draw();
+
+//   requestAnimationFrame(gameLoop);
+// }
 function gameLoop(time) {
-  const dt = (time - lastTime) / 1000; // sekunder
+  let dt = (time - lastTime) / 1000;
+  dt = Math.min(dt, 1 / 30); // aldrig hoppa mer än vad 30fps skulle motsvara
   lastTime = time;
 
   update(dt);

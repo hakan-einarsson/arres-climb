@@ -111,8 +111,6 @@ class Renderer {
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
 
-        // this.objectsToRender.sort((a, b) => b.depth - a.depth);
-
         const flat = [];
         for (const obj of this.objectsToRender) {
             flat.push(...obj.vertices);
