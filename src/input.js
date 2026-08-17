@@ -26,10 +26,14 @@ const mouseDelta = { x: 0, y: 0 };
 export function initPointer(canvas) {
     canvas.addEventListener('mousedown', (e) => {
         if (e.button === 0) {
+            canvas.requestPointerLock();
             leftMouseDown.value = true;
         }
     });
     window.addEventListener('mouseup', (e) => {
+        if (document.pointerLockElement === canvas && e.button === 0) {
+            document.exitPointerLock();
+        }
         if (e.button === 0) leftMouseDown.value = false;
     });
 
@@ -43,7 +47,7 @@ export function initPointer(canvas) {
 
 export function update() {
     const sensitivity = 0.002;
-    const maxMouseDeltaPerFrame = 20;
+    const maxMouseDeltaPerFrame = 50;
 
     const dx = Math.max(-maxMouseDeltaPerFrame, Math.min(maxMouseDeltaPerFrame, mouseDelta.x));
     const dy = Math.max(-maxMouseDeltaPerFrame, Math.min(maxMouseDeltaPerFrame, mouseDelta.y));
@@ -61,6 +65,12 @@ export function update() {
     if (moveLength > 0) {
         moveX /= moveLength;
         moveZ /= moveLength;
+    }
+
+    if (moveX < 0) {
+        player.facing = -1;
+    } else if (moveX > 0) {
+        player.facing = 1;
     }
 
     const [rotX, rotZ] = rotateY(moveX, moveZ, camera.yaw);
