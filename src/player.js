@@ -10,10 +10,20 @@ function getUV(col, row) {
     const v1 = ((row + 1) * tileSize) / texH;
     return { u0: u0 + epsU, v0: v0 + epsV, u1: u1 - epsU, v1: v1 - epsV };
 }
-
+const PLAYER_RUN_UV = [getUV(0, 1), getUV(1, 1), getUV(2, 1), getUV(3, 1)];
 const PLAYER_IDLE_UV = [getUV(4, 1), getUV(5, 1)];
+const PLAYER_JUMP_UV = [getUV(0, 1)];
+const PLAYER_FALL_UV = [getUV(2, 1)];
 
-function projectBillboard(x, y, z, camera, width, height, uv) {
+function flipUV(uv) {
+    return { u0: uv.u1, v0: uv.v0, u1: uv.u0, v1: uv.v1 };
+}
+
+function pickFrame(frames, time, fps) {
+    return frames[Math.floor(time * fps) % frames.length];
+}
+
+function projectBillboard(x, y, z, camera, width, height, uv, flipX = false) {
     const dx = camera.x - x;
     const dz = camera.z - z;
     const len = Math.sqrt(dx * dx + dz * dz) || 1;
@@ -37,7 +47,7 @@ function projectBillboard(x, y, z, camera, width, height, uv) {
 
     if (bl[2] <= 0.3 || br[2] <= 0.3) return null;
 
-    const { u0, v0, u1, v1 } = uv;
+    const { u0, v0, u1, v1 } = flipX ? flipUV(uv) : uv;
 
     const vertices = [
         bl[0], bl[1], bl[2], u0, v1,
@@ -62,14 +72,30 @@ class Player {
         this.coyoteTimer = 0;
         this.jumpBufferTimer = 0;
         this.jumpForce = 3.3;
-        this.speed = 1.5
+        this.speed = 1.5;
+        this.facing = 1;
+        this.animTime = 0;
+    }
+
+    update(dt) {
+        this.animTime += dt;
     }
 
     render(renderer) {
-        const uv = PLAYER_IDLE_UV[0];
-        const tri = projectBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, uv);
+        const moving = Math.hypot(this.vx, this.vz) > 0.01;
+        let uv;
+
+        if (!this.grounded) {
+            uv = this.vy > 0 ? PLAYER_JUMP_UV[0] : PLAYER_FALL_UV[0];
+        } else if (moving) {
+            uv = pickFrame(PLAYER_RUN_UV, this.animTime, 15);
+        } else {
+            uv = pickFrame(PLAYER_IDLE_UV, this.animTime, 3);
+        }
+
+        const tri = projectBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, uv, this.facing > 0);
         if (tri) renderer.addObjectToRender(tri.vertices, tri.depth, renderer.playerTexture);
     }
 }
 
-export const player = new Player(0, 2, 0);
+export const player = new Player(0, 41, 0);
