@@ -7,6 +7,7 @@ import { initPointer } from './input.js';
 import World from './world.js';
 import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
+import Tile from './tile.js';
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');
@@ -22,6 +23,8 @@ initPointer(canvas);
 const renderer = new Renderer(canvas, camera, aspectRatio);
 const world = new World();
 world.init();
+const rainbowTile = new Tile(Math.round(Math.random() * 32), 2, 0, 'RAINBOW');
+addGameObject(rainbowTile);
 addGameObject(player);
 
 let lastTime = 0;
