@@ -2,7 +2,9 @@ import { update as inputUpdate } from './input.js';
 import { gameObjects } from './gameObjects.js';
 import { updatePhysics } from './physics.js';
 import { player } from './player.js';
+import { world } from './world.js';
 import { camera } from './camera.js';
+import { TILE_SIZE } from './tile.js';
 
 export function rotateY(x, z, angle) {
     const cos = Math.cos(angle);
@@ -20,15 +22,27 @@ export function rotateY(x, z, angle) {
 
 // }
 
+let lastPlayerGridX = null, lastPlayerGridZ = null;
+
 export function update(dt) {
-    inputUpdate(); // sätter fortfarande player.vx/vz baserat på WASD, camera.rotate baserat på mus
+    inputUpdate(dt); // sätter fortfarande player.vx/vz baserat på WASD, camera.rotate baserat på mus
 
     updatePhysics(player, dt);
-    // console.log(player.vx, player.vz, player.x, player.z)
 
     gameObjects.forEach(obj => {
         if (typeof obj.update === 'function') obj.update(dt);
     });
-
+    camera.update(dt); // uppdatera kamerans position baserat på spelarens position och rotation
     camera.followTarget(player);
+}
+
+function checkChunkUpdate(world, player) {
+    const gridX = Math.floor(player.x / TILE_SIZE);
+    const gridZ = Math.floor(player.z / TILE_SIZE);
+
+    if (gridX !== lastPlayerGridX || gridZ !== lastPlayerGridZ) {
+        world.update(gridX, gridZ);
+        lastPlayerGridX = gridX;
+        lastPlayerGridZ = gridZ;
+    }
 }

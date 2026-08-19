@@ -1,11 +1,12 @@
 import { gameObjects } from './gameObjects.js';
 import Tile from './tile.js';
+import { TILE_SIZE } from './tile.js';
 
 const GRAVITY = -9.8;
 
 function getNearbyTiles(entity) {
-    const gridX = Math.floor(entity.x / 0.5);
-    const gridZ = Math.floor(entity.z / 0.5);
+    const gridX = Math.floor(entity.x / TILE_SIZE);
+    const gridZ = Math.floor(entity.z / TILE_SIZE);
 
     return gameObjects.filter(obj => {
         if (!(obj instanceof Tile) || obj.type === 'HOLE') return false;
@@ -31,11 +32,11 @@ function moveAxis(entity, axis, delta) {
 
     for (const tile of nearby) {
         const tileCenter = {
-            x: tile.gridX * 0.5 + 0.25,
-            y: tile.gridY * 0.5 + 0.25,
-            z: tile.gridZ * 0.5 + 0.25,
+            x: tile.gridX * TILE_SIZE + TILE_SIZE / 2,
+            y: tile.gridY * TILE_SIZE + TILE_SIZE / 2,
+            z: tile.gridZ * TILE_SIZE + TILE_SIZE / 2,
         };
-        const tileSize = { x: 0.5, y: 0.5, z: 0.5 };
+        const tileSize = { x: TILE_SIZE, y: TILE_SIZE, z: TILE_SIZE };
 
         if (boxesOverlap(testPos.x, testCenterY, testPos.z, size, tileCenter.x, tileCenter.y, tileCenter.z, tileSize)) {
             if (axis === 'y' && entity.vy < 0) {

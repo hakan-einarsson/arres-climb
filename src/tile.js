@@ -1,9 +1,12 @@
 // tile.js (eller block.js)
 import { worldToView } from './projection.js';
 
+export const TILE_SIZE = 0.5; // storlek på varje tile i världen, i enheter
+
 const texW = 128;
 const texH = 32;
 const tileSize = 8; // storlek på varje sprite i atlasen, i pixlar
+
 
 const epsU = 0.5 / texW;
 const epsV = 0.5 / texH;
@@ -24,11 +27,11 @@ const textureAtlas = {
     GRASS: { top: getUV(1, 0), bottom: getUV(0, 0) },
     ROCK: { top: getUV(3, 0), bottom: getUV(2, 0) },
     SNOW: { top: getUV(5, 0), bottom: getUV(4, 0) },
-    RAINBOW: { top: getUV(7, 0), bottom: getUV(6, 0) },
+    POINTER: { top: getUV(7, 0), bottom: getUV(6, 0) },
 };
 
 
-function createBlock(gridX, gridY, gridZ, type = 'GRASS', tileSize = 0.5, height = 0.5) {
+function createBlock(gridX, gridY, gridZ, type = 'GRASS', tileSize = TILE_SIZE, height = TILE_SIZE) {
     const x0 = gridX * tileSize;
     const x1 = x0 + tileSize;
     const z0 = gridZ * tileSize;
@@ -98,9 +101,9 @@ class Tile {
 
     isVisible(camera) {
         // Simple frustum culling: check if block is within view distance
-        const dx = this.gridX * 0.5 - camera.x;
-        const dy = this.gridY * 0.5 - camera.y;
-        const dz = this.gridZ * 0.5 - camera.z;
+        const dx = this.gridX * TILE_SIZE - camera.x;
+        const dy = this.gridY * TILE_SIZE - camera.y;
+        const dz = this.gridZ * TILE_SIZE - camera.z;
         const distSq = dx * dx + dy * dy + dz * dz;
         return distSq < 400; // ~20 unit radius from camera
     }
