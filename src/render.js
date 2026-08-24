@@ -1,4 +1,5 @@
 import { gameObjects } from './gameObjects.js';
+import { levelManager } from './levelManager.js';
 
 export function render(renderer) {
     gameObjects.forEach(obj => {
@@ -6,4 +7,5 @@ export function render(renderer) {
             obj.render(renderer);
         }
     });
+    levelManager.render(renderer);
 }

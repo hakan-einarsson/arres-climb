@@ -6,7 +6,6 @@ import Renderer from './Renderer.js';
 import { initPointer } from './input.js';
 import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
-import { devMode } from './devMode.js';
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');
@@ -23,6 +22,8 @@ const renderer = new Renderer(canvas, camera, aspectRatio);
 addGameObject(player);
 
 let lastTime = 0;
+let devUpdate = null;
+let devRender = null;
 
 function gameLoop(time) {
   let dt = (time - lastTime) / 1000;
@@ -30,13 +31,13 @@ function gameLoop(time) {
   lastTime = time;
 
   update(dt);
-  if (import.meta.env.DEV) {
-    devMode.update(dt);
+  if (devUpdate) {
+    devUpdate(dt);
   }
 
   render(renderer);
-  if (import.meta.env.DEV) {
-    devMode.render(renderer);
+  if (devRender) {
+    devRender(renderer);
   }
 
   renderer.draw();
@@ -45,7 +46,13 @@ function gameLoop(time) {
 }
 
 init();
+
 if (import.meta.env.DEV) {
-  devMode.init();
+  import('./devMode.js').then(({ devMode }) => {
+    devMode.init();
+    devUpdate = (dt) => devMode.update(dt);
+    devRender = (r) => devMode.render(r);
+  });
 }
+
 requestAnimationFrame(gameLoop);

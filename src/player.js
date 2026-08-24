@@ -1,4 +1,5 @@
 import { worldToView } from './projection.js';
+import { TILE_SIZE } from './tile.js';
 
 const texW = 128, texH = 32, tileSize = 8;
 const epsU = 0.5 / texW, epsV = 0.5 / texH;
@@ -78,6 +79,18 @@ class Player {
         this.aimZ = 1;
         this.animTime = 0;
         this.hasJumped = false;
+    }
+
+    spawnAt(gridX, gridY, gridZ) {
+        this.x = gridX * TILE_SIZE + TILE_SIZE / 2;
+        this.z = gridZ * TILE_SIZE + TILE_SIZE / 2;
+        this.y = gridY * TILE_SIZE + 0.5;
+        this.vx = 0;
+        this.vy = 0;
+        this.vz = 0;
+        this.grounded = false;
+        this.aimX = 0;
+        this.aimZ = 1;
     }
 
     update(dt) {
