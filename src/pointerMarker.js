@@ -4,14 +4,27 @@ import { TILE_SIZE } from './tile.js';
 import Tile from './tile.js';
 
 export function getTargetCell(player, camera, verticalOffset = 0) {
-    const dirX = Math.sin(camera.yaw);
-    const dirZ = Math.cos(camera.yaw);
+    let aimX = player.aimX;
+    let aimZ = player.aimZ;
 
-    const targetX = player.x - dirX * TILE_SIZE; // en tile-bredd framåt
-    const targetZ = player.z + dirZ * TILE_SIZE;
+    if (aimX === undefined || aimZ === undefined || (aimX === 0 && aimZ === 0)) {
+        aimX = -Math.sin(camera.yaw);
+        aimZ = Math.cos(camera.yaw);
+    }
 
-    const gridX = Math.floor(targetX / TILE_SIZE);
-    const gridZ = Math.floor(targetZ / TILE_SIZE);
+    const threshold = 0.38;
+    let stepX = Math.abs(aimX) >= threshold ? Math.sign(aimX) : 0;
+    let stepZ = Math.abs(aimZ) >= threshold ? Math.sign(aimZ) : 0;
+
+    if (stepX === 0 && stepZ === 0) {
+        stepZ = 1;
+    }
+
+    const playerGridX = Math.floor(player.x / TILE_SIZE);
+    const playerGridZ = Math.floor(player.z / TILE_SIZE);
+
+    const gridX = playerGridX + stepX;
+    const gridZ = playerGridZ + stepZ;
     const gridY = Math.floor(player.y / TILE_SIZE) + verticalOffset;
 
     return { gridX, gridY, gridZ };

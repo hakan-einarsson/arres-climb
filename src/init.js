@@ -5,9 +5,10 @@ import { TILE_SIZE } from './tile.js';
 
 export function init() {
     world.createWorld(0, 0);
-    player.x = -world.chunkRadius * TILE_SIZE + TILE_SIZE / 2;
-    player.z = -world.chunkRadius * TILE_SIZE + TILE_SIZE / 2;
-    player.y = world.getHeightAt(-world.chunkRadius, -world.chunkRadius) * TILE_SIZE + 1.5; // starta spelaren lite ovanför marken
+    const spawn = world.getSpawnPosition();
+    player.x = spawn.x * TILE_SIZE + TILE_SIZE / 2;
+    player.z = spawn.z * TILE_SIZE + TILE_SIZE / 2;
+    player.y = spawn.y * TILE_SIZE + 0.5;
     gameObjects.forEach(obj => {
         if (typeof obj.init === 'function') {
             obj.init();

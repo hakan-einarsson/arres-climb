@@ -70,14 +70,20 @@ export function update(dt) {
     if (moveLength > 0) {
         moveX /= moveLength;
         moveZ /= moveLength;
+
+        const [rotX, rotZ] = rotateY(moveX, moveZ, camera.yaw);
+        player.aimX = rotX;
+        player.aimZ = rotZ;
+
+        if (moveX < 0) player.facing = -1;
+        else if (moveX > 0) player.facing = 1;
+
+        player.vx = rotX * player.speed;
+        player.vz = rotZ * player.speed;
+    } else {
+        player.vx = 0;
+        player.vz = 0;
     }
-
-    if (moveX < 0) player.facing = -1;
-    else if (moveX > 0) player.facing = 1;
-
-    const [rotX, rotZ] = rotateY(moveX, moveZ, camera.yaw);
-    player.vx = rotX * player.speed;
-    player.vz = rotZ * player.speed;
 
     if (input.jumpPressed) player.jumpBufferTimer = 0.1;
 

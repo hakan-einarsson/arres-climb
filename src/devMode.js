@@ -1,6 +1,6 @@
 import PointerMarker, { getTargetCell } from './pointerMarker.js';
 import { addGameObject, removeGameObject, gameObjects } from './gameObjects.js';
-import Tile from './tile.js';
+import Tile, { TILE_SIZE } from './tile.js';
 import { world } from './world.js';
 import { player } from './player.js';
 import { camera } from './camera.js';
@@ -14,6 +14,7 @@ class DevMode {
         this.selectedTypeIndex = 0;
         this.verticalOffset = 0;
         this.modifications = [];
+        this.spawn = null;
         this.hudElement = null;
     }
 
@@ -62,6 +63,12 @@ class DevMode {
                 this.placeBlock();
             } else if (key === 'x' || e.code === 'Delete' || e.code === 'Backspace') {
                 this.removeBlock();
+            } else if (key === 'b') {
+                if (e.shiftKey) {
+                    this.teleportToSpawn();
+                } else {
+                    this.setSpawnPoint();
+                }
             } else if (key === 't') {
                 this.cycleBlockType();
             } else if (key === '1') {
@@ -128,8 +135,83 @@ class DevMode {
     findBlockAt(x, y, z) {
         return gameObjects.find(
             obj => obj instanceof Tile && !(obj instanceof PointerMarker) &&
-                   obj.gridX === x && obj.gridY === y && obj.gridZ === z
+                obj.gridX === x && obj.gridY === y && obj.gridZ === z
         );
+    }
+
+    isOriginallyGenerated(x, y, z) {
+        const h = world.getHeightAt(x, z);
+        return h > 0 && (h - 1) === y;
+    }
+
+    getOriginalGeneratedType(x, y, z) {
+        if (!this.isOriginallyGenerated(x, y, z)) return null;
+        const h = world.getHeightAt(x, z);
+        return h > 7 ? 'SNOW' : h < 4 ? 'GRASS' : 'ROCK';
+    }
+
+    setSpawnPoint() {
+        const { gridX, gridY, gridZ } = getTargetCell(player, camera, this.verticalOffset);
+        const block = this.findBlockAt(gridX, gridY, gridZ);
+        // Om det finns ett block vid markören, sätt spawn ovanpå det; annars i cellen direkt
+        const spawnY = block ? gridY + 1 : gridY;
+        this.spawn = { x: gridX, y: spawnY, z: gridZ };
+        console.log(`[DevMode] Player spawn point set to: (${this.spawn.x}, ${this.spawn.y}, ${this.spawn.z})`);
+        this.updateHud();
+    }
+
+    teleportToSpawn() {
+        const spawn = this.spawn || world.getSpawnPosition();
+        player.x = spawn.x * TILE_SIZE + TILE_SIZE / 2;
+        player.z = spawn.z * TILE_SIZE + TILE_SIZE / 2;
+        player.y = spawn.y * TILE_SIZE + 0.5;
+        player.vx = 0;
+        player.vy = 0;
+        player.vz = 0;
+        console.log(`[DevMode] Teleported player to spawn: (${spawn.x}, ${spawn.y}, ${spawn.z})`);
+    }
+
+    preventPlayerStuck(gridX, gridY, gridZ) {
+        const minX = gridX * TILE_SIZE;
+        const maxX = minX + TILE_SIZE;
+        const minY = gridY * TILE_SIZE;
+        const maxY = minY + TILE_SIZE;
+        const minZ = gridZ * TILE_SIZE;
+        const maxZ = minZ + TILE_SIZE;
+
+        const halfW = player.width / 2;
+        const halfD = player.depth / 2;
+        const pMinX = player.x - halfW;
+        const pMaxX = player.x + halfW;
+        const pMinY = player.y;
+        const pMaxY = player.y + player.height;
+        const pMinZ = player.z - halfD;
+        const pMaxZ = player.z + halfD;
+
+        const overlapX = pMinX < maxX && pMaxX > minX;
+        const overlapZ = pMinZ < maxZ && pMaxZ > minZ;
+        const overlapY = pMinY < maxY && pMaxY > minY;
+
+        if (overlapX && overlapZ && overlapY) {
+            // Om spelarens fötter är på eller nära blockets nivå, lyft upp spelaren ovanpå blocket
+            if (player.y >= minY - 0.05) {
+                player.y = maxY + 0.01;
+                player.vy = 0;
+                player.grounded = true;
+            } else {
+                // Om blocket placerades ovanför, knuffa spelaren horisontellt ut ur blocket
+                const blockCenterX = minX + TILE_SIZE / 2;
+                const blockCenterZ = minZ + TILE_SIZE / 2;
+                const dx = player.x - blockCenterX;
+                const dz = player.z - blockCenterZ;
+
+                if (Math.abs(dx) >= Math.abs(dz)) {
+                    player.x = dx >= 0 ? maxX + halfW + 0.02 : minX - halfW - 0.02;
+                } else {
+                    player.z = dz >= 0 ? maxZ + halfD + 0.02 : minZ - halfD - 0.02;
+                }
+            }
+        }
     }
 
     placeBlock() {
@@ -151,8 +233,27 @@ class DevMode {
         }
         world.loadedColumns.get(colKey).push(tile);
 
-        const mod = { x: gridX, y: gridY, z: gridZ, action: 'add', type };
-        this.modifications.push(mod);
+        // Flytta eller lyft spelaren om den är för nära/inuti det nya blocket så att gubben inte fastnar
+        this.preventPlayerStuck(gridX, gridY, gridZ);
+
+        // Hantera modifieringslistan smart
+        const modIndex = this.modifications.findIndex(
+            m => m.x === gridX && m.y === gridY && m.z === gridZ
+        );
+
+        if (this.isOriginallyGenerated(gridX, gridY, gridZ) && this.getOriginalGeneratedType(gridX, gridY, gridZ) === type) {
+            // Återställd till samma typ som i den procedurella världen -> ta bort mod
+            if (modIndex !== -1) {
+                this.modifications.splice(modIndex, 1);
+            }
+        } else {
+            const mod = { x: gridX, y: gridY, z: gridZ, action: 'add', type };
+            if (modIndex !== -1) {
+                this.modifications[modIndex] = mod;
+            } else {
+                this.modifications.push(mod);
+            }
+        }
 
         console.log(`[DevMode] Placed ${type} at (${gridX}, ${gridY}, ${gridZ}). Total mods: ${this.modifications.length}`);
         this.updateHud();
@@ -176,20 +277,42 @@ class DevMode {
             if (idx !== -1) col.splice(idx, 1);
         }
 
-        const mod = { x: gridX, y: gridY, z: gridZ, action: 'remove' };
-        this.modifications.push(mod);
+        const modIndex = this.modifications.findIndex(
+            m => m.x === gridX && m.y === gridY && m.z === gridZ
+        );
+
+        if (!this.isOriginallyGenerated(gridX, gridY, gridZ)) {
+            // Cellen var ursprungligen tom: om vi hade lagt till ett block här, ta bort 'add'-posten så att den försvinner helt
+            if (modIndex !== -1) {
+                this.modifications.splice(modIndex, 1);
+            }
+        } else {
+            // Cellen hade ursprungligen ett genererat block: spara 'remove'
+            const mod = { x: gridX, y: gridY, z: gridZ, action: 'remove' };
+            if (modIndex !== -1) {
+                this.modifications[modIndex] = mod;
+            } else {
+                this.modifications.push(mod);
+            }
+        }
 
         console.log(`[DevMode] Removed ${tile.type} at (${gridX}, ${gridY}, ${gridZ}). Total mods: ${this.modifications.length}`);
         this.updateHud();
     }
 
     getLevelExport() {
-        return {
+        const exportObj = {
             seed: world.seed,
             size: world.chunkRadius,
             maxHeight: world.maxHeight,
-            modifications: [...this.modifications],
         };
+
+        if (this.spawn) {
+            exportObj.spawn = { ...this.spawn };
+        }
+
+        exportObj.modifications = [...this.modifications];
+        return exportObj;
     }
 
     exportData() {
@@ -226,15 +349,17 @@ class DevMode {
         const currentBlock = this.findBlockAt(gridX, gridY, gridZ);
         const cellStatus = currentBlock ? `Occupied (${currentBlock.type})` : 'Empty';
         const offsetSign = this.verticalOffset > 0 ? `+${this.verticalOffset}` : `${this.verticalOffset}`;
+        const spawnText = this.spawn ? `X: ${this.spawn.x}, Y: ${this.spawn.y}, Z: ${this.spawn.z}` : 'Auto';
 
         this.hudElement.innerHTML = `
             <div style="font-weight: bold; color: #00ffcc; margin-bottom: 4px;">🛠️ [DEV MODE: ON] (Toggle: F)</div>
             <div>Target: <b>X: ${gridX}, Y: ${gridY}, Z: ${gridZ}</b> [${cellStatus}]</div>
             <div>Y-Offset: <b>${offsetSign}</b> (↑/↓ or C/V, Reset: G)</div>
+            <div>Spawn: <b style="color: #69f0ae;">${spawnText}</b> (Set: B, Teleport: Shift+B)</div>
             <div>Selected Type: <b style="color: #ffeb3b;">${this.selectedType}</b> (Cycle: T, 1-3)</div>
             <div>Modifications: <b>${this.modifications.length}</b> (Export: O)</div>
             <div style="margin-top: 6px; font-size: 11px; color: #90caf9;">
-                <b>[R]</b> Place &nbsp;|&nbsp; <b>[X]</b> Remove &nbsp;|&nbsp; <b>[O]</b> Export JSON
+                <b>[R]</b> Place &nbsp;|&nbsp; <b>[X]</b> Remove &nbsp;|&nbsp; <b>[B]</b> Set Spawn &nbsp;|&nbsp; <b>[O]</b> Export JSON
             </div>
         `;
     }

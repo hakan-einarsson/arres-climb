@@ -74,6 +74,8 @@ class Player {
         this.jumpForce = 3.3;
         this.speed = 1.5;
         this.facing = 1;
+        this.aimX = 0;
+        this.aimZ = 1;
         this.animTime = 0;
         this.hasJumped = false;
     }
