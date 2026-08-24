@@ -1,4 +1,4 @@
-import { worldToView } from './projection.js';
+import { projectBillboard } from './projection.js';
 import { TILE_SIZE } from './tile.js';
 
 const texW = 128;
@@ -13,55 +13,6 @@ const COIN_UV = {
     u1: 32 / texW - epsU,
     v1: 32 / texH - epsV,
 };
-
-function projectRotatingBillboard(x, y, z, camera, width, height, uv, angle) {
-    const dx = camera.x - x;
-    const dz = camera.z - z;
-    const len = Math.sqrt(dx * dx + dz * dz) || 1;
-    const dirX = dx / len;
-    const dirZ = dz / len;
-
-    // Right vector perpendicular to camera view
-    const rightX = dirZ;
-    const rightZ = -dirX;
-
-    // Apparent horizontal width based on spin angle
-    const cosAngle = Math.cos(angle);
-    const halfW = (width / 2) * cosAngle;
-
-    const leftX = x - halfW * rightX;
-    const leftZ = z - halfW * rightZ;
-    const rightPX = x + halfW * rightX;
-    const rightPZ = z + halfW * rightZ;
-
-    const bl = worldToView(leftX, y, leftZ, camera);
-    const br = worldToView(rightPX, y, rightPZ, camera);
-    const tl = worldToView(leftX, y + height, leftZ, camera);
-    const tr = worldToView(rightPX, y + height, rightPZ, camera);
-
-    if (bl[2] <= 0.3 || br[2] <= 0.3) return null;
-
-    let { u0, v0, u1, v1 } = uv;
-    if (cosAngle < 0) {
-        // Mirror when showing back face
-        const tmp = u0;
-        u0 = u1;
-        u1 = tmp;
-    }
-
-    const vertices = [
-        bl[0], bl[1], bl[2], u0, v1,
-        br[0], br[1], br[2], u1, v1,
-        tr[0], tr[1], tr[2], u1, v0,
-
-        bl[0], bl[1], bl[2], u0, v1,
-        tr[0], tr[1], tr[2], u1, v0,
-        tl[0], tl[1], tl[2], u0, v0,
-    ];
-
-    const depth = (bl[2] + br[2]) / 2;
-    return { vertices, depth };
-}
 
 export class Coin {
     constructor(gridX = 0, gridY = 0, gridZ = 0) {
@@ -96,14 +47,13 @@ export class Coin {
     update(dt) {
         if (!this.active) return;
         this.animTime += dt;
-        // Sväva mjukt upp och ner
         this.y = this.baseY + Math.sin(this.animTime * 3.0) * 0.08;
     }
 
     render(renderer) {
         if (!this.active) return;
-        const angle = this.animTime * this.rotationSpeed;
-        const tri = projectRotatingBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, COIN_UV, angle);
+        const scaleX = Math.cos(this.animTime * this.rotationSpeed);
+        const tri = projectBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, COIN_UV, scaleX);
         if (tri) renderer.addObjectToRender(tri.vertices, tri.depth);
     }
 

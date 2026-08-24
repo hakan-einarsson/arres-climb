@@ -18,6 +18,7 @@ export class EditorWorld {
         };
 
         this.spawn = null;
+        this.goal = null;
         this.activeLayer = 0;
 
         this.perm = generatePermTable(this.seed);
@@ -93,6 +94,11 @@ export class EditorWorld {
         if (!this.spawn) {
             this.spawn = this.calculateDefaultSpawn();
         }
+
+        // Set default goal if none exists
+        if (!this.goal) {
+            this.goal = this.calculateDefaultGoal();
+        }
     }
 
     calculateDefaultSpawn() {
@@ -108,6 +114,22 @@ export class EditorWorld {
             }
         }
         return { x: 0, y: 1, z: 0 };
+    }
+
+    calculateDefaultGoal() {
+        let maxH = 0;
+        let goalPos = { x: 0, y: 1, z: 0 };
+
+        for (let dz = -this.chunkRadius; dz <= this.chunkRadius; dz++) {
+            for (let dx = -this.chunkRadius; dx <= this.chunkRadius; dx++) {
+                const h = this.getHeightAt(dx, dz);
+                if (h > maxH) {
+                    maxH = h;
+                    goalPos = { x: dx, y: h, z: dz };
+                }
+            }
+        }
+        return goalPos;
     }
 
     getBlockAt(x, y, z) {
@@ -176,6 +198,10 @@ export class EditorWorld {
         this.spawn = { x, y, z };
     }
 
+    setGoal(x, y, z) {
+        this.goal = { x, y, z };
+    }
+
     clearModifications() {
         this.modifications = [];
         this.regenerate(false);
@@ -191,6 +217,7 @@ export class EditorWorld {
             threshold: this.threshold,
             heightTypeMap: { ...this.heightTypeMap },
             spawn: this.spawn ? { ...this.spawn } : this.calculateDefaultSpawn(),
+            goal: this.goal ? { ...this.goal } : this.calculateDefaultGoal(),
             modifications: [...this.modifications],
         };
         return JSON.stringify(data, null, 2);
@@ -210,6 +237,9 @@ export class EditorWorld {
             }
             if (data.spawn && typeof data.spawn.x === 'number') {
                 this.spawn = { ...data.spawn };
+            }
+            if (data.goal && typeof data.goal.x === 'number') {
+                this.goal = { ...data.goal };
             }
             if (Array.isArray(data.modifications)) {
                 this.modifications = [...data.modifications];

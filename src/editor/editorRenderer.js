@@ -61,6 +61,7 @@ export const textureAtlas = {
     RAINBOW: { top: getUV(7, 0), bottom: getUV(6, 0) },
     POINTER: { top: getUV(9, 0), bottom: getUV(8, 0) },
     SPAWN: { top: getUV(0, 1), bottom: getUV(0, 1) },
+    GOAL: { top: getUV(2, 2), bottom: getUV(2, 2) },
 };
 
 function createBlockVertices(gridX, gridY, gridZ, type = 'GRASS') {
@@ -267,6 +268,14 @@ export class EditorRenderer {
                 const projected = projectTriangles(spawnVerts, this.camera);
                 mainVertices.push(...projected);
             }
+
+            // Goal indicator in 3D
+            if (editorWorld.goal) {
+                const { x, y, z } = editorWorld.goal;
+                const goalVerts = createBlockVertices(x, y, z, 'GOAL');
+                const projected = projectTriangles(goalVerts, this.camera);
+                mainVertices.push(...projected);
+            }
         } else {
             // TOP-DOWN EDIT MODE: Render ONLY the active layer!
             for (const tile of editorWorld.activeBlocks.values()) {
@@ -285,13 +294,21 @@ export class EditorRenderer {
                 mainVertices.push(...projected);
             }
 
+            // Goal indicator on this layer if present
+            if (editorWorld.goal && editorWorld.goal.y === activeLayer) {
+                const { x, y, z } = editorWorld.goal;
+                const goalVerts = createBlockVertices(x, y, z, 'GOAL');
+                const projected = projectTriangles(goalVerts, this.camera);
+                mainVertices.push(...projected);
+            }
+
             // Clean crisp grid borders on the active layer
             const gridLines = this.createGridLines(editorWorld.chunkRadius, activeLayer);
             gridVertices.push(...projectTriangles(gridLines, this.camera));
 
             // Hover indicator
             if (hoveredCell) {
-                const hoverType = selectedTool === 'ERASER' ? 'POINTER' : (selectedTool === 'SPAWN' ? 'SPAWN' : selectedTool);
+                const hoverType = selectedTool === 'ERASER' ? 'POINTER' : (selectedTool === 'SPAWN' ? 'SPAWN' : (selectedTool === 'GOAL' ? 'GOAL' : selectedTool));
                 const hoverVerts = createBlockVertices(hoveredCell.x, hoveredCell.y, hoveredCell.z, hoverType);
                 hoverVertices.push(...projectTriangles(hoverVerts, this.camera));
 
@@ -301,6 +318,9 @@ export class EditorRenderer {
                 } else if (selectedTool === 'SPAWN') {
                     hoverTint = [1.0, 0.8, 0.0]; // Gold for spawn
                     hoverTintAmount = 0.4;
+                } else if (selectedTool === 'GOAL') {
+                    hoverTint = [1.0, 0.85, 0.0]; // Shiny gold for goal
+                    hoverTintAmount = 0.5;
                 } else {
                     hoverTint = [0.0, 0.0, 0.0]; // Normal texture preview
                     hoverTintAmount = 0.0;

@@ -93,6 +93,9 @@ function applyActionAtHovered(button) {
     } else if (ui.selectedTool === 'SPAWN') {
         // Set spawn
         editorWorld.setSpawn(x, y, z);
+    } else if (ui.selectedTool === 'GOAL') {
+        // Set goal
+        editorWorld.setGoal(x, y, z);
     } else {
         // Place selected block
         editorWorld.addBlock(x, y, z, ui.selectedTool);
@@ -194,6 +197,8 @@ window.addEventListener('keydown', (e) => {
         ui.setSelectedTool('ERASER');
     } else if (key === 's') {
         ui.setSelectedTool('SPAWN');
+    } else if (key === 'g') {
+        ui.setSelectedTool('GOAL');
     } else if (key === 'r') {
         editorWorld.regenerate(true);
     } else if (key === 'o' || key === 'p') {

@@ -22,6 +22,7 @@ export class EditorUI {
 
         this.paletteBtns = document.querySelectorAll('.palette-btn');
         this.btnToolSpawn = document.getElementById('btn-tool-spawn');
+        this.btnToolGoal = document.getElementById('btn-tool-goal');
 
         this.inputSeed = document.getElementById('input-seed');
         this.btnRandomSeed = document.getElementById('btn-random-seed');
@@ -73,6 +74,10 @@ export class EditorUI {
 
         if (this.btnToolSpawn) {
             this.btnToolSpawn.addEventListener('click', () => this.setSelectedTool('SPAWN'));
+        }
+
+        if (this.btnToolGoal) {
+            this.btnToolGoal.addEventListener('click', () => this.setSelectedTool('GOAL'));
         }
 
         // Procedural sliders & inputs
@@ -230,6 +235,9 @@ export class EditorUI {
         });
         if (this.btnToolSpawn) {
             this.btnToolSpawn.classList.toggle('active', tool === 'SPAWN');
+        }
+        if (this.btnToolGoal) {
+            this.btnToolGoal.classList.toggle('active', tool === 'GOAL');
         }
     }
 
