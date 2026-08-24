@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arre's Climb — Level Editor</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #viewport-container {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      background: #1a1e29;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+
+    #overlay-info {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(13, 17, 23, 0.85);
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      pointer-events: none;
+      line-height: 1.5;
+      color: #58a6ff;
+      z-index: 10;
+    }
+
+    #sidebar {
+      width: 340px;
+      height: 100%;
+      background: #161b22;
+      border-left: 1px solid #30363d;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 20;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid #30363d;
+      background: #0d1117;
+    }
+
+    .sidebar-header h1 {
+      font-size: 16px;
+      color: #58a6ff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section {
+      padding: 14px 16px;
+      border-bottom: 1px solid #21262d;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #8b949e;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    button {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      background: #30363d;
+      border-color: #8b949e;
+    }
+
+    button.active {
+      background: #1f6feb;
+      border-color: #58a6ff;
+      color: #ffffff;
+    }
+
+    button.primary {
+      background: #238636;
+      border-color: #2ea043;
+      color: #ffffff;
+    }
+
+    button.primary:hover {
+      background: #2ea043;
+    }
+
+    button.danger {
+      background: #da3633;
+      border-color: #f85149;
+      color: #ffffff;
+    }
+
+    button.danger:hover {
+      background: #f85149;
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .form-row label {
+      color: #8b949e;
+      flex: 1;
+    }
+
+    .form-row .value-display {
+      font-family: monospace;
+      font-size: 12px;
+      color: #58a6ff;
+      min-width: 32px;
+      text-align: right;
+      margin-left: 6px;
+    }
+
+    input[type="range"] {
+      flex: 1.5;
+      accent-color: #58a6ff;
+      cursor: pointer;
+    }
+
+    input[type="number"], input[type="text"], select {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+
+    input[type="number"]:focus, input[type="text"]:focus, select:focus {
+      border-color: #58a6ff;
+      outline: none;
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .palette-btn {
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 6px;
+    }
+
+    .palette-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    .swatch-grass { background: #4caf50; }
+    .swatch-rock { background: #9e9e9e; }
+    .swatch-snow { background: #e0f7fa; }
+    .swatch-rainbow { background: linear-gradient(135deg, red, yellow, lime, cyan, magenta); }
+    .swatch-spawn { background: #ff9800; border: 1px dashed #fff; }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #7ee787;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      padding: 8px;
+      resize: vertical;
+      margin-top: 6px;
+    }
+
+    .help-text {
+      font-size: 11px;
+      color: #8b949e;
+      line-height: 1.5;
+    }
+
+    .kbd {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: 2px 4px;
+      font-size: 10px;
+      color: #58a6ff;
+      font-family: monospace;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="viewport-container">
+    <canvas id="editor-canvas"></canvas>
+    <div id="overlay-info">
+      <div>Mode: <b id="info-mode">3D Inspect</b></div>
+      <div>Layer: <b id="info-layer">0</b> | Cell: <b id="info-cell">-</b></div>
+      <div>Mods: <b id="info-mods">0</b></div>
+    </div>
+  </div>
+
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <h1>🧗 Arre's Climb Editor</h1>
+    </div>
+
+    <!-- View & Edit Mode -->
+    <div class="section">
+      <div class="section-title">View Mode</div>
+      <div class="btn-group">
+        <button id="btn-mode-inspect" class="active" style="flex: 1;">🌐 3D Inspect</button>
+        <button id="btn-mode-edit" style="flex: 1;">📐 Top-Down Edit <span class="kbd">F</span></button>
+      </div>
+      <div class="form-row" style="margin-top: 10px;">
+        <label>Active Y-Layer:</label>
+        <button id="btn-layer-down" style="padding: 2px 8px;"><span class="kbd">Q</span> ▼</button>
+        <span id="layer-display" class="value-display" style="font-size: 14px; font-weight: bold;">0</span>
+        <button id="btn-layer-up" style="padding: 2px 8px;">▲ <span class="kbd">E</span></button>
+      </div>
+      <input type="range" id="layer-slider" min="0" max="20" value="0" style="width: 100%; margin-top: 4px;">
+    </div>
+
+    <!-- Block Palette -->
+    <div class="section">
+      <div class="section-title">Block Tool / Palette</div>
+      <div class="palette-grid">
+        <button class="palette-btn active" data-type="GRASS">
+          <span class="palette-swatch swatch-grass"></span> GRASS <span class="kbd">1</span>
+        </button>
+        <button class="palette-btn" data-type="ROCK">
+          <span class="palette-swatch swatch-rock"></span> ROCK <span class="kbd">2</span>
+        </button>
+        <button class="palette-btn" data-type="SNOW">
+          <span class="palette-swatch swatch-snow"></span> SNOW <span class="kbd">3</span>
+        </button>
+        <button class="palette-btn" data-type="RAINBOW">
+          <span class="palette-swatch swatch-rainbow"></span> RAINBOW <span class="kbd">4</span>
+        </button>
+        <button class="palette-btn" data-type="ERASER" style="grid-column: span 2; background: #2f1719; border-color: #f85149;">
+          <span class="palette-swatch" style="background: #da3633;"></span> 🗑️ ERASER / REMOVE <span class="kbd">5 / Del</span>
+        </button>
+      </div>
+      <button id="btn-tool-spawn" class="palette-btn" style="width: 100%; margin-top: 6px;">
+        <span class="palette-swatch swatch-spawn"></span> 🚩 SET SPAWN POINT <span class="kbd">S</span>
+      </button>
+    </div>
+
+    <!-- Procedural Generation Parameters -->
+    <div class="section">
+      <div class="section-title">Procedural Parameters</div>
+      <div class="form-row">
+        <label>Seed:</label>
+        <input type="number" id="input-seed" value="2" style="width: 80px;">
+        <button id="btn-random-seed" style="padding: 4px 8px;">🎲</button>
+      </div>
+      <div class="form-row">
+        <label>Radius (Size):</label>
+        <input type="range" id="slider-size" min="3" max="20" value="6">
+        <span id="val-size" class="value-display">6</span>
+      </div>
+      <div class="form-row">
+        <label>Max Height:</label>
+        <input type="range" id="slider-height" min="2" max="25" value="12">
+        <span id="val-height" class="value-display">12</span>
+      </div>
+      <div class="form-row">
+        <label>Island Falloff:</label>
+        <input type="range" id="slider-falloff" min="1" max="6" step="0.5" value="3">
+        <span id="val-falloff" class="value-display">3</span>
+      </div>
+      <div class="form-row">
+        <label>Scale (Noise):</label>
+        <input type="range" id="slider-scale" min="0.1" max="1.0" step="0.05" value="0.45">
+        <span id="val-scale" class="value-display">0.45</span>
+      </div>
+      <div class="form-row">
+        <label>Threshold:</label>
+        <input type="range" id="slider-threshold" min="0.05" max="0.5" step="0.01" value="0.22">
+        <span id="val-threshold" class="value-display">0.22</span>
+      </div>
+
+      <div class="section-title" style="margin-top: 14px;">Height Map Thresholds</div>
+      <div class="form-row">
+        <label>Grass Max Height:</label>
+        <input type="number" id="input-grass-max" value="3" min="1" max="30" style="width: 60px;">
+      </div>
+      <div class="form-row">
+        <label>Rock Max Height:</label>
+        <input type="number" id="input-rock-max" value="7" min="1" max="30" style="width: 60px;">
+      </div>
+      <div class="form-row">
+        <label>Snow Max Height:</label>
+        <input type="number" id="input-snow-max" value="12" min="1" max="30" style="width: 60px;">
+      </div>
+
+      <div style="display: flex; gap: 6px; margin-top: 10px;">
+        <button id="btn-regenerate" class="primary" style="flex: 1;">🔄 Regenerate</button>
+        <button id="btn-clear-mods" class="danger" style="flex: 1;">🧹 Clear Mods</button>
+      </div>
+    </div>
+
+    <!-- Export & Import -->
+    <div class="section">
+      <div class="section-title">Export / Import JSON</div>
+      <div class="btn-group">
+        <button id="btn-export" class="primary" style="flex: 1;">📋 Export JSON</button>
+        <button id="btn-import" style="flex: 1;">📥 Import JSON</button>
+      </div>
+      <textarea id="json-textarea" placeholder="Level definition JSON will appear here..."></textarea>
+    </div>
+
+    <!-- Controls & Help -->
+    <div class="section" style="border-bottom: none;">
+      <div class="section-title">Controls</div>
+      <div class="help-text">
+        <b>3D Inspect:</b> Left-Click + Drag to rotate, Right-Click / Middle to pan, Scroll to zoom.<br><br>
+        <b>Top-Down Edit (<span class="kbd">F</span>):</b><br>
+        • <b>Left Click:</b> Place Block<br>
+        • <b>Right Click:</b> Remove Block<br>
+        • <span class="kbd">Q</span> / <span class="kbd">E</span>: Change active Y-layer<br>
+        • <span class="kbd">1</span>-<span class="kbd">4</span>: Select block type<br>
+        • <span class="kbd">S</span>: Set spawn point at mouse
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/editor/editorMain.js"></script>
+</body>
+
+</html>

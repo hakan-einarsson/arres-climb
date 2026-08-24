@@ -27,7 +27,8 @@ const textureAtlas = {
     GRASS: { top: getUV(1, 0), bottom: getUV(0, 0) },
     ROCK: { top: getUV(3, 0), bottom: getUV(2, 0) },
     SNOW: { top: getUV(5, 0), bottom: getUV(4, 0) },
-    POINTER: { top: getUV(7, 0), bottom: getUV(6, 0) },
+    RAINBOW: { top: getUV(7, 0), bottom: getUV(6, 0) },
+    POINTER: { top: getUV(9, 0), bottom: getUV(8, 0) },
 };
 
 

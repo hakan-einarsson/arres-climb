@@ -1,6 +1,6 @@
 import { vertexShaderSource } from './vertexShaderSource.js';
 import { fragmentShaderSource } from './fragmentShaderSource.js';
-// import { buildFrame } from './world.js';
+import textureUrl from './assets/textures.png';
 
 class Renderer {
     constructor(canvas, camera, aspectRatio = 1.0) {
@@ -28,7 +28,7 @@ class Renderer {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
         this.gl.enable(this.gl.BLEND);
         this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-        this.texture = this.loadTexture('assets/textures.png');
+        this.texture = this.loadTexture(textureUrl);
 
         const uTextureLoc = this.gl.getUniformLocation(program, 'u_texture');
         this.gl.uniform1i(uTextureLoc, 0); // texture unit 0
