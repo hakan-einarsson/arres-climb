@@ -11,7 +11,7 @@ const TEXTURE_TO_HEIGHT_MAP = {
 
 // world.js
 class World {
-    constructor(chunkRadius = 10, maxHeight = 10, seed = 2, scale = 0.45) {
+    constructor(chunkRadius = 6, maxHeight = 15, seed = 2, scale = 0.45) {
         this.chunkRadius = chunkRadius; // hur många kolumner ut från spelaren som ska existera
         this.maxHeight = maxHeight;
         this.seed = seed;

@@ -50,58 +50,6 @@ export function initPointer(canvas) {
     });
 }
 
-// export function update(dt) {
-//     const sensitivity = 0.002;
-//     const maxMouseDeltaPerFrame = 50;
-
-//     const dx = Math.max(-maxMouseDeltaPerFrame, Math.min(maxMouseDeltaPerFrame, mouseDelta.x));
-//     const dy = Math.max(-maxMouseDeltaPerFrame, Math.min(maxMouseDeltaPerFrame, mouseDelta.y));
-//     // camera.rotate(dx * sensitivity, dy * sensitivity);
-//     mouseDelta.x = 0;
-//     mouseDelta.y = 0;
-
-//     let moveX = 0, moveZ = 0;
-//     if (keys['w']) moveZ += 1;
-//     if (keys['s']) moveZ -= 1;
-//     if (keys['a']) moveX -= 1;
-//     if (keys['d']) moveX += 1;
-//     if (keys['+'] || keys['=']) camera.distance = Math.max(MIN_DISTANCE, camera.distance - CAMERA_ZOOM_SPEED * dt);
-//     if (keys['-']) camera.distance = Math.min(MAX_DISTANCE, camera.distance + CAMERA_ZOOM_SPEED * dt);
-
-//     if (keys['e']) {
-//         camera.rotateStep(1);
-//         keys['e'] = false; // förhindra kontinuerlig rotation medan tangenten hålls nere
-//     }
-//     if (keys['q']) {
-//         camera.rotateStep(-1);
-//         keys['q'] = false; // förhindra kontinuerlig rotation medan tangenten hålls nere
-//     }
-
-//     // if (keys['r']) player.destroyBlock();
-//     // if (keys['f']) {
-//     //     player.creatingBlock = !player.creatingBlock; // toggle creating block mode
-//     //     keys['f'] = false; // prevent continuous toggling while holding the key
-//     // }
-
-//     const moveLength = Math.hypot(moveX, moveZ);
-//     if (moveLength > 0) {
-//         moveX /= moveLength;
-//         moveZ /= moveLength;
-//     }
-
-//     if (moveX < 0) {
-//         player.facing = -1;
-//     } else if (moveX > 0) {
-//         player.facing = 1;
-//     }
-
-//     const [rotX, rotZ] = rotateY(moveX, moveZ, camera.yaw);
-//     player.vx = rotX * player.speed;
-//     player.vz = rotZ * player.speed;
-
-//     camera.followTarget(player); // sista steget varje frame: synka kamerans position till spelaren
-// }
-
 export function update(dt) {
     const input = getInputState();
 

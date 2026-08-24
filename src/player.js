@@ -1,7 +1,4 @@
 import { worldToView } from './projection.js';
-import PointerMarker from './pointerMarker.js';
-import { gameObjects, addGameObject } from './gameObjects.js';
-import Tile from './tile.js';
 
 const texW = 128, texH = 32, tileSize = 8;
 const epsU = 0.5 / texW, epsV = 0.5 / texH;
@@ -78,16 +75,11 @@ class Player {
         this.speed = 1.5;
         this.facing = 1;
         this.animTime = 0;
-        this.hasJumped = false; // ny egenskap för att hålla reda på om spelaren har hoppat
-        this.pointer = new PointerMarker();
-        this.creatingBlock = false; // ny egenskap för att hålla reda på om vi är i "creating block"-läge
+        this.hasJumped = false;
     }
 
     update(dt) {
         this.animTime += dt;
-        // if (this.creatingBlock) {
-        this.pointer.update(dt);
-        // }
     }
 
     render(renderer) {
@@ -104,23 +96,7 @@ class Player {
 
         const tri = projectBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, uv, this.facing > 0);
         if (tri) renderer.addObjectToRender(tri.vertices, tri.depth, renderer.playerTexture);
-        if (this.creatingBlock) {
-            this.pointer.render(renderer);
-        }
-    }
-
-    createBlock() {
-        if (!this.creatingBlock) return; // Only create block if in creating block mode
-        const tile = new Tile(this.pointer.gridX, this.pointer.gridY, this.pointer.gridZ, 'POINTER');
-        addGameObject(tile);
-    }
-
-    destroyBlock() {
-        const index = gameObjects.findIndex(obj => obj instanceof Tile && obj.gridX === this.pointer.gridX && obj.gridY === this.pointer.gridY && obj.gridZ === this.pointer.gridZ);
-        if (index !== -1) {
-            gameObjects.splice(index, 1);
-        }
     }
 }
 
-export const player = new Player(3, 1, 1);
+export const player = new Player(1, 1, 1);

@@ -2,12 +2,11 @@ import { init } from './init.js';
 import { update } from './update.js';
 import { render } from './render.js';
 import { camera } from './camera.js';
-import Renderer from './renderer.js';
+import Renderer from './Renderer.js';
 import { initPointer } from './input.js';
-import { world } from './world.js';
 import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
-import Tile from './tile.js';
+import { devMode } from './devMode.js';
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');
@@ -31,11 +30,22 @@ function gameLoop(time) {
   lastTime = time;
 
   update(dt);
+  if (import.meta.env.DEV) {
+    devMode.update(dt);
+  }
+
   render(renderer);
+  if (import.meta.env.DEV) {
+    devMode.render(renderer);
+  }
+
   renderer.draw();
 
   requestAnimationFrame(gameLoop);
 }
 
 init();
+if (import.meta.env.DEV) {
+  devMode.init();
+}
 requestAnimationFrame(gameLoop);
