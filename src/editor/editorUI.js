@@ -23,6 +23,7 @@ export class EditorUI {
         this.paletteBtns = document.querySelectorAll('.palette-btn');
         this.btnToolSpawn = document.getElementById('btn-tool-spawn');
         this.btnToolGoal = document.getElementById('btn-tool-goal');
+        this.inputMovingDist = document.getElementById('input-moving-dist');
 
         this.inputSeed = document.getElementById('input-seed');
         this.btnRandomSeed = document.getElementById('btn-random-seed');
@@ -197,6 +198,10 @@ export class EditorUI {
                 alert('Import error: ' + result.error);
             }
         });
+    }
+
+    get movingDistance() {
+        return parseInt(this.inputMovingDist?.value, 10) || 3;
     }
 
     setMode(mode) {

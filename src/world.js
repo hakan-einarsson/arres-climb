@@ -1,4 +1,5 @@
 import Tile, { TILE_SIZE } from './tile.js';
+import MovingBlock from './movingBlock.js';
 import { addGameObject, removeGameObject, gameObjects } from './gameObjects.js';
 import perlin from './perlin.js';
 import generatePermTable from './permTable.js';
@@ -14,6 +15,7 @@ class World {
         this.heightTypeMap = { grassMax: 3, rockMax: 7, snowMax: 12 };
         this.perm = generatePermTable(seed);
         this.loadedColumns = new Map(); // "x,z" -> array av Tile-instanser för den kolumnen
+        this.movingBlocks = [];
     }
 
     applyLevelConfig(config) {
@@ -33,29 +35,40 @@ class World {
         if (!Array.isArray(modifications)) return;
 
         for (const mod of modifications) {
-            const { x, y, z, action, type } = mod;
+            const { x, y, z, action, type, dist } = mod;
             const colKey = `${x},${z}`;
 
             if (action === 'remove') {
                 const tileIndex = gameObjects.findIndex(
-                    obj => obj instanceof Tile && obj.gridX === x && obj.gridY === y && obj.gridZ === z
+                    obj => (obj instanceof Tile || obj instanceof MovingBlock) &&
+                           obj.gridX === x && obj.gridY === y && obj.gridZ === z
                 );
                 if (tileIndex !== -1) {
-                    const tile = gameObjects[tileIndex];
-                    removeGameObject(tile);
+                    const obj = gameObjects[tileIndex];
+                    removeGameObject(obj);
                     const col = this.loadedColumns.get(colKey);
                     if (col) {
-                        const idx = col.indexOf(tile);
+                        const idx = col.indexOf(obj);
                         if (idx !== -1) col.splice(idx, 1);
                     }
+                    const mIdx = this.movingBlocks.indexOf(obj);
+                    if (mIdx !== -1) this.movingBlocks.splice(mIdx, 1);
                 }
             } else if (action === 'add') {
-                const tile = new Tile(x, y, z, type || 'GRASS');
-                addGameObject(tile);
-                if (!this.loadedColumns.has(colKey)) {
-                    this.loadedColumns.set(colKey, []);
+                if (type === 'MOVING_X' || type === 'MOVING_Z' || type === 'MOVING') {
+                    const axis = type === 'MOVING_Z' ? 'z' : 'x';
+                    const maxDist = dist !== undefined ? dist : 3;
+                    const movingBlock = new MovingBlock(x, y, z, axis, maxDist);
+                    addGameObject(movingBlock);
+                    this.movingBlocks.push(movingBlock);
+                } else {
+                    const tile = new Tile(x, y, z, type || 'GRASS');
+                    addGameObject(tile);
+                    if (!this.loadedColumns.has(colKey)) {
+                        this.loadedColumns.set(colKey, []);
+                    }
+                    this.loadedColumns.get(colKey).push(tile);
                 }
-                this.loadedColumns.get(colKey).push(tile);
             }
         }
     }
@@ -67,6 +80,11 @@ class World {
             }
         }
         this.loadedColumns.clear();
+
+        for (const mb of this.movingBlocks) {
+            removeGameObject(mb);
+        }
+        this.movingBlocks = [];
     }
 
     getHeightAt(x, z) {

@@ -1,5 +1,135 @@
 export const LEVELS = [
     {
+        name: "Level 0: The Beginning",
+        "seed": 75257,
+        "size": 5,
+        "maxHeight": 13,
+        "islandFactor": 4.5,
+        "scale": 0.7,
+        "threshold": 0.5,
+        "heightTypeMap": {
+            "grassMax": 3,
+            "rockMax": 7,
+            "snowMax": 12
+        },
+        "spawn": {
+            "x": 3,
+            "y": 1,
+            "z": -1
+        },
+        "goal": {
+            "x": 0,
+            "y": 7,
+            "z": 1
+        },
+        "modifications": [
+            {
+                "x": -2,
+                "y": 1,
+                "z": 3,
+                "action": "add",
+                "type": "GRASS"
+            },
+            {
+                "x": -1,
+                "y": 1,
+                "z": 3,
+                "action": "add",
+                "type": "GRASS"
+            },
+            {
+                "x": -2,
+                "y": 1,
+                "z": -2,
+                "action": "add",
+                "type": "MOVING_Z",
+                "dist": 5
+            },
+            {
+                "x": -2,
+                "y": 0,
+                "z": -1,
+                "action": "remove"
+            },
+            {
+                "x": 1,
+                "y": 4,
+                "z": 1,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": 3,
+                "y": 5,
+                "z": 3,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": 2,
+                "y": 5,
+                "z": 3,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": 1,
+                "y": 5,
+                "z": 3,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": 0,
+                "y": 5,
+                "z": 3,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": -1,
+                "y": 5,
+                "z": 3,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": 0,
+                "y": 6,
+                "z": 2,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": 0,
+                "y": 6,
+                "z": 1,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": -1,
+                "y": 0,
+                "z": 2,
+                "action": "remove"
+            },
+            {
+                "x": -1,
+                "y": 3,
+                "z": 0,
+                "action": "add",
+                "type": "ROCK"
+            },
+            {
+                "x": -1,
+                "y": 3,
+                "z": 3,
+                "action": "add",
+                "type": "ROCK"
+            }
+        ]
+    },
+    {
         name: "Level 1: Green Meadows",
         "seed": 2,
         "size": 5,
@@ -71,6 +201,14 @@ export const LEVELS = [
                 "z": 0,
                 "action": "add",
                 "type": "SNOW"
+            },
+            {
+                "x": 1,
+                "y": 6,
+                "z": 2,
+                "action": "add",
+                "type": "MOVING_X",
+                "dist": 3
             }
         ]
     },

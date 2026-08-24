@@ -29,6 +29,9 @@ const textureAtlas = {
     SNOW: { top: getUV(5, 0), bottom: getUV(4, 0) },
     RAINBOW: { top: getUV(7, 0), bottom: getUV(6, 0) },
     POINTER: { top: getUV(9, 0), bottom: getUV(8, 0) },
+    MOVING: { top: getUV(8, 0), bottom: getUV(8, 0) },
+    MOVING_X: { top: getUV(8, 0), bottom: getUV(8, 0) },
+    MOVING_Z: { top: getUV(8, 0), bottom: getUV(8, 0) },
 };
 
 

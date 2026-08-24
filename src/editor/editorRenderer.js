@@ -60,6 +60,9 @@ export const textureAtlas = {
     SNOW: { top: getUV(5, 0), bottom: getUV(4, 0) },
     RAINBOW: { top: getUV(7, 0), bottom: getUV(6, 0) },
     POINTER: { top: getUV(9, 0), bottom: getUV(8, 0) },
+    MOVING: { top: getUV(8, 0), bottom: getUV(8, 0) },
+    MOVING_X: { top: getUV(8, 0), bottom: getUV(8, 0) },
+    MOVING_Z: { top: getUV(8, 0), bottom: getUV(8, 0) },
     SPAWN: { top: getUV(0, 1), bottom: getUV(0, 1) },
     GOAL: { top: getUV(2, 2), bottom: getUV(2, 2) },
 };

@@ -145,7 +145,7 @@ export class EditorWorld {
         return base ? base.type : null;
     }
 
-    addBlock(x, y, z, type = 'GRASS') {
+    addBlock(x, y, z, type = 'GRASS', dist = 3) {
         const key = `${x},${y},${z}`;
         const existing = this.activeBlocks.get(key);
         if (existing && existing.type === type) return false;
@@ -160,6 +160,9 @@ export class EditorWorld {
             if (modIndex !== -1) this.modifications.splice(modIndex, 1);
         } else {
             const mod = { x, y, z, action: 'add', type };
+            if (type.startsWith('MOVING')) {
+                mod.dist = dist;
+            }
             if (modIndex !== -1) {
                 this.modifications[modIndex] = mod;
             } else {

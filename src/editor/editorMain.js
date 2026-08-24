@@ -98,7 +98,8 @@ function applyActionAtHovered(button) {
         editorWorld.setGoal(x, y, z);
     } else {
         // Place selected block
-        editorWorld.addBlock(x, y, z, ui.selectedTool);
+        const dist = ui.movingDistance;
+        editorWorld.addBlock(x, y, z, ui.selectedTool, dist);
     }
     ui.syncJSON();
 }
@@ -195,6 +196,10 @@ window.addEventListener('keydown', (e) => {
         ui.setSelectedTool('RAINBOW');
     } else if (key === '5' || key === 'x' || e.code === 'Delete' || e.code === 'Backspace') {
         ui.setSelectedTool('ERASER');
+    } else if (key === '6') {
+        ui.setSelectedTool('MOVING_X');
+    } else if (key === '7') {
+        ui.setSelectedTool('MOVING_Z');
     } else if (key === 's') {
         ui.setSelectedTool('SPAWN');
     } else if (key === 'g') {

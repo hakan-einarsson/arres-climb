@@ -1,17 +1,41 @@
 import { gameObjects } from './gameObjects.js';
 import Tile from './tile.js';
+import MovingBlock from './movingBlock.js';
 import { TILE_SIZE } from './tile.js';
 
 const GRAVITY = -9.8;
 
-function getNearbyTiles(entity) {
-    const gridX = Math.floor(entity.x / TILE_SIZE);
-    const gridZ = Math.floor(entity.z / TILE_SIZE);
+function getNearbySolids(entity) {
+    const minX = entity.x - TILE_SIZE * 1.5;
+    const maxX = entity.x + TILE_SIZE * 1.5;
+    const minZ = entity.z - TILE_SIZE * 1.5;
+    const maxZ = entity.z + TILE_SIZE * 1.5;
+    const minY = entity.y - TILE_SIZE * 1.5;
+    const maxY = entity.y + TILE_SIZE * 2.0;
 
-    return gameObjects.filter(obj => {
-        if (!(obj instanceof Tile) || obj.type === 'HOLE') return false;
-        return Math.abs(obj.gridX - gridX) <= 1 && Math.abs(obj.gridZ - gridZ) <= 1;
-    });
+    const solids = [];
+
+    for (const obj of gameObjects) {
+        if (obj instanceof Tile && obj.type !== 'HOLE') {
+            const cx = obj.gridX * TILE_SIZE + TILE_SIZE / 2;
+            const cy = obj.gridY * TILE_SIZE + TILE_SIZE / 2;
+            const cz = obj.gridZ * TILE_SIZE + TILE_SIZE / 2;
+
+            if (cx >= minX && cx <= maxX && cz >= minZ && cz <= maxZ && cy >= minY && cy <= maxY) {
+                solids.push({ obj, center: { x: cx, y: cy, z: cz } });
+            }
+        } else if (obj instanceof MovingBlock) {
+            const cx = obj.x + TILE_SIZE / 2;
+            const cy = obj.y + TILE_SIZE / 2;
+            const cz = obj.z + TILE_SIZE / 2;
+
+            if (cx >= minX && cx <= maxX && cz >= minZ && cz <= maxZ && cy >= minY && cy <= maxY) {
+                solids.push({ obj, center: { x: cx, y: cy, z: cz } });
+            }
+        }
+    }
+
+    return solids;
 }
 
 function boxesOverlap(aX, aY, aZ, aSize, bX, bY, bZ, bSize) {
@@ -28,19 +52,16 @@ function moveAxis(entity, axis, delta) {
 
     const size = { x: entity.width, y: entity.height, z: entity.depth };
     const testCenterY = testPos.y + entity.height / 2;
-    const nearby = getNearbyTiles(entity);
+    const nearby = getNearbySolids(entity);
+    const tileSize = { x: TILE_SIZE, y: TILE_SIZE, z: TILE_SIZE };
 
-    for (const tile of nearby) {
-        const tileCenter = {
-            x: tile.gridX * TILE_SIZE + TILE_SIZE / 2,
-            y: tile.gridY * TILE_SIZE + TILE_SIZE / 2,
-            z: tile.gridZ * TILE_SIZE + TILE_SIZE / 2,
-        };
-        const tileSize = { x: TILE_SIZE, y: TILE_SIZE, z: TILE_SIZE };
-
-        if (boxesOverlap(testPos.x, testCenterY, testPos.z, size, tileCenter.x, tileCenter.y, tileCenter.z, tileSize)) {
+    for (const solid of nearby) {
+        if (boxesOverlap(testPos.x, testCenterY, testPos.z, size, solid.center.x, solid.center.y, solid.center.z, tileSize)) {
             if (axis === 'y' && entity.vy < 0) {
-                entity.grounded = true;   // <-- den här raden måste finnas
+                entity.grounded = true;
+                if (solid.obj instanceof MovingBlock) {
+                    entity.groundPlatform = solid.obj;
+                }
             }
             entity['v' + axis] = 0;
             return;
@@ -51,7 +72,14 @@ function moveAxis(entity, axis, delta) {
 }
 
 export function updatePhysics(entity, dt) {
+    // Om spelaren står på en rörlig plattform, bär med spelaren
+    if (entity.grounded && entity.groundPlatform) {
+        entity.x += entity.groundPlatform.vx * dt;
+        entity.z += entity.groundPlatform.vz * dt;
+    }
+
     entity.grounded = false;
+    entity.groundPlatform = null;
 
     entity.vy += GRAVITY * dt;
 
@@ -59,22 +87,23 @@ export function updatePhysics(entity, dt) {
     moveAxis(entity, 'y', entity.vy * dt);
     moveAxis(entity, 'z', entity.vz * dt);
 
-    // Coyote-timer: fylls på när grounded, räknas ner annars
+    // Coyote-timer
     if (entity.grounded) {
         entity.coyoteTimer = 0.1;
     } else if (entity.coyoteTimer > 0) {
         entity.coyoteTimer -= dt;
     }
 
-    // Jump buffer-timer: räknas ner oavsett, oberoende av grounded
+    // Jump buffer-timer
     if (entity.jumpBufferTimer > 0) {
         entity.jumpBufferTimer -= dt;
     }
 
-    // Utlös hoppet HÄR, centralt, när båda fönster är öppna samtidigt
+    // Utlös hoppet
     if (entity.jumpBufferTimer > 0 && entity.coyoteTimer > 0) {
         entity.vy = entity.jumpForce;
         entity.jumpBufferTimer = 0;
         entity.coyoteTimer = 0;
+        entity.groundPlatform = null;
     }
 }

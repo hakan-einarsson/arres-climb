@@ -304,9 +304,19 @@
         <button class="palette-btn" data-type="RAINBOW">
           <span class="palette-swatch swatch-rainbow"></span> RAINBOW <span class="kbd">4</span>
         </button>
+        <button class="palette-btn" data-type="MOVING_X">
+          <span class="palette-swatch" style="background: #2196f3;"></span> ↔️ MOVING (X) <span class="kbd">6</span>
+        </button>
+        <button class="palette-btn" data-type="MOVING_Z">
+          <span class="palette-swatch" style="background: #00bcd4;"></span> ↕️ MOVING (Z) <span class="kbd">7</span>
+        </button>
         <button class="palette-btn" data-type="ERASER" style="grid-column: span 2; background: #2f1719; border-color: #f85149;">
           <span class="palette-swatch" style="background: #da3633;"></span> 🗑️ ERASER / REMOVE <span class="kbd">5 / Del</span>
         </button>
+      </div>
+      <div class="form-row" style="margin-top: 8px;">
+        <label>Moving Distance:</label>
+        <input type="number" id="input-moving-dist" value="3" min="1" max="15" style="width: 60px;">
       </div>
       <div style="display: flex; gap: 6px; margin-top: 6px;">
         <button id="btn-tool-spawn" class="palette-btn" style="flex: 1;">
