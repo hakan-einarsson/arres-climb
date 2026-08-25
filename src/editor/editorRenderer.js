@@ -55,6 +55,18 @@ function getUV(col, row) {
 }
 
 export const textureAtlas = {
+    1: { top: getUV(1, 0), bottom: getUV(0, 0) },
+    2: { top: getUV(3, 0), bottom: getUV(2, 0) },
+    3: { top: getUV(5, 0), bottom: getUV(4, 0) },
+    4: { top: getUV(7, 0), bottom: getUV(6, 0) },
+    5: { top: getUV(8, 0), bottom: getUV(8, 0) },
+    6: { top: getUV(8, 0), bottom: getUV(8, 0) },
+    G: { top: getUV(1, 0), bottom: getUV(0, 0) },
+    R: { top: getUV(3, 0), bottom: getUV(2, 0) },
+    S: { top: getUV(5, 0), bottom: getUV(4, 0) },
+    RB: { top: getUV(7, 0), bottom: getUV(6, 0) },
+    MX: { top: getUV(8, 0), bottom: getUV(8, 0) },
+    MZ: { top: getUV(8, 0), bottom: getUV(8, 0) },
     GRASS: { top: getUV(1, 0), bottom: getUV(0, 0) },
     ROCK: { top: getUV(3, 0), bottom: getUV(2, 0) },
     SNOW: { top: getUV(5, 0), bottom: getUV(4, 0) },

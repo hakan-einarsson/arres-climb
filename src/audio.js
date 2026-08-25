@@ -180,29 +180,25 @@ CHORD_ROOTS.forEach((root, i) => {
 const BASS_ROOTS = [36, 40, 41, 43, 45, 40, 41, 43];
 const BASS_LINE = [];
 BASS_ROOTS.forEach((root, i) => {
-    const isMin = (i === 1 || i === 4 || i === 5);
-    const third = isMin ? 3 : 4;
-    if (i === 7) {
-        BASS_LINE.push(root,0,root,0, root+7,0,root+12,0, root,0,root,root+2, root+4,root+5,root+7,0);
-    } else if (i === 3) {
-        BASS_LINE.push(root,0,root,0, root+7,0,root+12,0, root,0,root-2,0, root-3,0,root-5,0);
-    } else {
-        BASS_LINE.push(root,0,root,0, root+7,0,root+12,0, root,0,root,0, root+third,0,root+7,0);
-    }
+    const third = (i === 1 || i === 4 || i === 5) ? 3 : 4;
+    const tail = (i === 7) ? [root,0,root,root+2, root+4,root+5,root+7,0] :
+                 (i === 3) ? [root,0,root-2,0, root-3,0,root-5,0] :
+                             [root,0,root,0, root+third,0,root+7,0];
+    BASS_LINE.push(root,0,root,0, root+7,0,root+12,0, ...tail);
 });
 
 const LEAD_NOTES = [
-    [0,76],[4,79],[8,84],[10,83],[12,79],[14,76],
-    [16,79],[20,76],[22,74],[24,76],
-    [32,81],[36,84],[40,88],[42,86],[44,84],[46,81],
-    [48,83],[52,79],[54,81],[56,83],[62,86],
-    [64,84],[68,88],[72,93],[74,91],[76,88],[78,86],
-    [80,88],[84,83],[86,79],[88,76],
-    [96,77],[98,81],[100,84],[102,88],[104,86],[106,84],[108,81],[110,79],
-    [112,79],[114,81],[116,83],[118,86],[120,84]
+    0,76, 4,79, 8,84, 10,83, 12,79, 14,76,
+    16,79, 20,76, 22,74, 24,76,
+    32,81, 36,84, 40,88, 42,86, 44,84, 46,81,
+    48,83, 52,79, 54,81, 56,83, 62,86,
+    64,84, 68,88, 72,93, 74,91, 76,88, 78,86,
+    80,88, 84,83, 86,79, 88,76,
+    96,77, 98,81, 100,84, 102,88, 104,86, 106,84, 108,81, 110,79,
+    112,79, 114,81, 116,83, 118,86, 120,84
 ];
 const LEAD_LINE = new Uint8Array(128);
-LEAD_NOTES.forEach(([s, n]) => LEAD_LINE[s] = n);
+for (let i = 0; i < LEAD_NOTES.length; i += 2) LEAD_LINE[LEAD_NOTES[i]] = LEAD_NOTES[i + 1];
 
 const BASE_DRUM = [1,3,3,3, 2,3,3,3, 1,3,1,3, 2,3,3,4];
 const DRUM_PATTERN = [];

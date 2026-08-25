@@ -45,11 +45,6 @@ export function initTouchControls() {
     const touchUI = document.getElementById('t-ui');
     const dpad = document.getElementById('t-pad');
     const stick = document.getElementById('t-stk');
-    const btnJump = document.getElementById('bj');
-    const btnRotL = document.getElementById('brl');
-    const btnRotR = document.getElementById('brr');
-    const btnZoomIn = document.getElementById('bzi');
-    const btnZoomOut = document.getElementById('bzo');
 
     if (!touchUI || !dpad) return;
 
@@ -71,10 +66,8 @@ export function initTouchControls() {
                 const clamped = Math.min(dist, maxRadius);
                 const angle = Math.atan2(dy, dx);
 
-                const stickX = Math.cos(angle) * clamped;
-                const stickY = Math.sin(angle) * clamped;
                 if (stick) {
-                    stick.style.transform = `translate(${stickX}px, ${stickY}px)`;
+                    stick.style.transform = `translate(${Math.cos(angle) * clamped}px, ${Math.sin(angle) * clamped}px)`;
                 }
 
                 if (dist > 6) {
@@ -117,50 +110,22 @@ export function initTouchControls() {
     dpad.addEventListener('touchend', endTouch);
     dpad.addEventListener('touchcancel', endTouch);
 
-    if (btnJump) {
-        btnJump.addEventListener('touchstart', (e) => {
+    const bindBtn = (id, onStart, onEnd) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('touchstart', (e) => {
             unlockAudio();
             e.preventDefault();
-            player.jumpBufferTimer = 0.12;
+            onStart();
         }, { passive: false });
-        btnJump.addEventListener('touchend', () => {
-            if (player.vy > 0) player.vy *= JUMP_CUTOFF_FACTOR;
-        });
-    }
+        if (onEnd) btn.addEventListener('touchend', onEnd);
+    };
 
-    if (btnRotL) {
-        btnRotL.addEventListener('touchstart', (e) => {
-            unlockAudio();
-            e.preventDefault();
-            touchRotateL = true;
-        }, { passive: false });
-    }
-
-    if (btnRotR) {
-        btnRotR.addEventListener('touchstart', (e) => {
-            unlockAudio();
-            e.preventDefault();
-            touchRotateR = true;
-        }, { passive: false });
-    }
-
-    if (btnZoomIn) {
-        btnZoomIn.addEventListener('touchstart', (e) => {
-            unlockAudio();
-            e.preventDefault();
-            touchZoomIn = true;
-        }, { passive: false });
-        btnZoomIn.addEventListener('touchend', () => touchZoomIn = false);
-    }
-
-    if (btnZoomOut) {
-        btnZoomOut.addEventListener('touchstart', (e) => {
-            unlockAudio();
-            e.preventDefault();
-            touchZoomOut = true;
-        }, { passive: false });
-        btnZoomOut.addEventListener('touchend', () => touchZoomOut = false);
-    }
+    bindBtn('bj', () => player.jumpBufferTimer = 0.12, () => { if (player.vy > 0) player.vy *= JUMP_CUTOFF_FACTOR; });
+    bindBtn('brl', () => touchRotateL = true);
+    bindBtn('brr', () => touchRotateR = true);
+    bindBtn('bzi', () => touchZoomIn = true, () => touchZoomIn = false);
+    bindBtn('bzo', () => touchZoomOut = true, () => touchZoomOut = false);
 }
 
 export function initPointer(canvas) {

@@ -1,18 +1,14 @@
-import { projectBillboard } from './projection.js';
-import { TILE_SIZE } from './tile.js';
+import { projectBillboard, projectGroundQuad } from './projection.js';
+import { TILE_SIZE, getUV } from './tile.js';
+import { getGroundY } from './player.js';
 
-const texW = 128;
-const texH = 32;
-const epsU = 0.5 / texW;
-const epsV = 0.5 / texH;
-
-// 16x16 sprite at x:16, y:16 in textures.png
 const COIN_UV = {
-    u0: 16 / texW + epsU,
-    v0: 16 / texH + epsV,
-    u1: 32 / texW - epsU,
-    v1: 32 / texH - epsV,
+    u0: 16 / 128 + 0.5 / 128,
+    v0: 16 / 32 + 0.5 / 32,
+    u1: 32 / 128 - 0.5 / 128,
+    v1: 32 / 32 - 0.5 / 32,
 };
+const SHADOW_UV = getUV(10, 0);
 
 export class Coin {
     constructor(gridX = 0, gridY = 0, gridZ = 0) {
@@ -52,9 +48,19 @@ export class Coin {
 
     render(renderer) {
         if (!this.active) return;
+
+        // Ground drop shadow
+        const groundY = getGroundY(this.x, this.z, this.y);
+        if (groundY > -5) {
+            const diff = Math.max(0, this.y - groundY);
+            const size = Math.max(0.12, 0.26 - diff * 0.03);
+            const quad = projectGroundQuad(this.x, groundY + 0.002, this.z, renderer.camera, size, SHADOW_UV, 1.0);
+            if (quad) renderer.addObjectToRender(quad);
+        }
+
         const scaleX = Math.cos(this.animTime * this.rotationSpeed);
-        const tri = projectBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, COIN_UV, scaleX);
-        if (tri) renderer.addObjectToRender(tri.vertices, tri.depth);
+        const tri = projectBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, COIN_UV, scaleX, false, 1.05);
+        if (tri) renderer.addObjectToRender(tri.vertices);
     }
 
     checkCollision(player) {

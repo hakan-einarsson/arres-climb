@@ -22,8 +22,8 @@ export class EditorWorld {
         this.activeLayer = 0;
 
         this.perm = generatePermTable(this.seed);
-        this.baseBlocks = new Map(); // "x,y,z" -> { gridX, gridY, gridZ, type }
-        this.activeBlocks = new Map(); // "x,y,z" -> Tile
+        this.baseBlocks = new Map();
+        this.activeBlocks = new Map();
         this.modifications = [];
 
         this.regenerate(false);
@@ -156,7 +156,6 @@ export class EditorWorld {
         const modIndex = this.modifications.findIndex(m => m.x === x && m.y === y && m.z === z);
 
         if (this.isOriginallyGenerated(x, y, z) && this.getOriginalGeneratedType(x, y, z) === type) {
-            // Reverted back to exact base terrain block
             if (modIndex !== -1) this.modifications.splice(modIndex, 1);
         } else {
             const mod = { x, y, z, action: 'add', type };
@@ -182,10 +181,8 @@ export class EditorWorld {
         const modIndex = this.modifications.findIndex(m => m.x === x && m.y === y && m.z === z);
 
         if (!this.isOriginallyGenerated(x, y, z)) {
-            // Was added during editing -> cancel modification
             if (modIndex !== -1) this.modifications.splice(modIndex, 1);
         } else {
-            // Was in procedural terrain -> record removal
             const mod = { x, y, z, action: 'remove' };
             if (modIndex !== -1) {
                 this.modifications[modIndex] = mod;
@@ -211,41 +208,143 @@ export class EditorWorld {
     }
 
     exportJSON() {
-        const data = {
-            seed: this.seed,
-            size: this.chunkRadius,
-            maxHeight: this.maxHeight,
-            islandFactor: this.islandFactor,
-            scale: this.scale,
-            threshold: this.threshold,
-            heightTypeMap: { ...this.heightTypeMap },
-            spawn: this.spawn ? { ...this.spawn } : this.calculateDefaultSpawn(),
-            goal: this.goal ? { ...this.goal } : this.calculateDefaultGoal(),
-            modifications: [...this.modifications],
+        const typeMap = [
+            this.heightTypeMap.grassMax !== undefined ? this.heightTypeMap.grassMax : 3,
+            this.heightTypeMap.rockMax !== undefined ? this.heightTypeMap.rockMax : 7,
+            this.heightTypeMap.snowMax !== undefined ? this.heightTypeMap.snowMax : 12,
+        ];
+
+        const spawnArr = this.spawn ? [this.spawn.x, this.spawn.y, this.spawn.z] : [this.calculateDefaultSpawn().x, this.calculateDefaultSpawn().y, this.calculateDefaultSpawn().z];
+        const goalArr = this.goal ? [this.goal.x, this.goal.y, this.goal.z] : [this.calculateDefaultGoal().x, this.calculateDefaultGoal().y, this.calculateDefaultGoal().z];
+
+        const typeToCode = {
+            GRASS: 'G', ROCK: 'R', SNOW: 'S', RAINBOW: 'RB',
+            MOVING_X: 'MX', MOVING_Z: 'MZ', MOVING: 'MX',
+            1: 'G', 2: 'R', 3: 'S', 4: 'RB', 5: 'MX', 6: 'MZ'
         };
-        return JSON.stringify(data, null, 2);
+
+        const modsArr = this.modifications.map(m => {
+            if (m.action === 'remove') return [m.x, m.y, m.z, 0];
+            const code = typeToCode[m.type] || m.type;
+            if (code === 'MX' || code === 'MZ' || m.type === 'MOVING_X' || m.type === 'MOVING_Z' || m.type === 'MOVING') {
+                return [m.x, m.y, m.z, code, m.dist !== undefined ? m.dist : 3];
+            }
+            return [m.x, m.y, m.z, code];
+        });
+
+        const levelTuple = [
+            this.seed,
+            this.chunkRadius,
+            this.maxHeight,
+            this.islandFactor,
+            this.scale,
+            this.threshold,
+            typeMap,
+            spawnArr,
+            goalArr,
+            modsArr
+        ];
+
+        return JSON.stringify(levelTuple, null, 2);
     }
 
     importJSON(jsonString) {
         try {
-            const data = JSON.parse(jsonString);
-            if (typeof data.seed === 'number') this.seed = data.seed;
-            if (typeof data.size === 'number') this.chunkRadius = data.size;
-            if (typeof data.maxHeight === 'number') this.maxHeight = data.maxHeight;
-            if (typeof data.islandFactor === 'number') this.islandFactor = data.islandFactor;
-            if (typeof data.scale === 'number') this.scale = data.scale;
-            if (typeof data.threshold === 'number') this.threshold = data.threshold;
-            if (data.heightTypeMap && typeof data.heightTypeMap === 'object') {
-                this.heightTypeMap = { ...this.heightTypeMap, ...data.heightTypeMap };
-            }
-            if (data.spawn && typeof data.spawn.x === 'number') {
-                this.spawn = { ...data.spawn };
-            }
-            if (data.goal && typeof data.goal.x === 'number') {
-                this.goal = { ...data.goal };
-            }
-            if (Array.isArray(data.modifications)) {
-                this.modifications = [...data.modifications];
+            let clean = jsonString
+                .replace(/\bG\b/g, '1')
+                .replace(/\bR\b/g, '2')
+                .replace(/\bS\b/g, '3')
+                .replace(/\bRB\b/g, '4')
+                .replace(/\bMX\b/g, '5')
+                .replace(/\bMZ\b/g, '6');
+
+            const data = JSON.parse(clean);
+
+            if (Array.isArray(data)) {
+                let arr = data;
+                if (typeof arr[0] === 'string') {
+                    arr = arr.slice(1);
+                }
+                const [seed, size, maxHeight, islandFactor, scale, threshold, heightTypeMap, spawn, goal, mods] = arr;
+
+                if (typeof seed === 'number') this.seed = seed;
+                if (typeof size === 'number') this.chunkRadius = size;
+                if (typeof maxHeight === 'number') this.maxHeight = maxHeight;
+                if (typeof islandFactor === 'number') this.islandFactor = islandFactor;
+                if (typeof scale === 'number') this.scale = scale;
+                if (typeof threshold === 'number') this.threshold = threshold;
+
+                if (Array.isArray(heightTypeMap)) {
+                    this.heightTypeMap = {
+                        grassMax: heightTypeMap[0] ?? 3,
+                        rockMax: heightTypeMap[1] ?? 7,
+                        snowMax: heightTypeMap[2] ?? 12
+                    };
+                }
+
+                if (Array.isArray(spawn)) {
+                    this.spawn = { x: spawn[0], y: spawn[1], z: spawn[2] };
+                }
+                if (Array.isArray(goal)) {
+                    this.goal = { x: goal[0], y: goal[1], z: goal[2] };
+                }
+
+                if (Array.isArray(mods)) {
+                    const codeToType = {
+                        1: 'GRASS', 2: 'ROCK', 3: 'SNOW', 4: 'RAINBOW',
+                        5: 'MOVING_X', 6: 'MOVING_Z',
+                        'G': 'GRASS', 'R': 'ROCK', 'S': 'SNOW', 'RB': 'RAINBOW',
+                        'MX': 'MOVING_X', 'MZ': 'MOVING_Z'
+                    };
+
+                    this.modifications = mods.map(m => {
+                        if (Array.isArray(m)) {
+                            const [x, y, z, actionOrType, dist] = m;
+                            if (actionOrType === 0 || actionOrType === 'remove') {
+                                return { x, y, z, action: 'remove' };
+                            }
+                            const t = codeToType[actionOrType] || actionOrType || 'GRASS';
+                            const res = { x, y, z, action: 'add', type: t };
+                            if (dist !== undefined) res.dist = dist;
+                            return res;
+                        }
+                        return m;
+                    });
+                }
+            } else if (typeof data === 'object' && data !== null) {
+                if (typeof data.seed === 'number') this.seed = data.seed;
+                if (typeof data.size === 'number') this.chunkRadius = data.size;
+                if (typeof data.maxHeight === 'number') this.maxHeight = data.maxHeight;
+                if (typeof data.islandFactor === 'number') this.islandFactor = data.islandFactor;
+                if (typeof data.scale === 'number') this.scale = data.scale;
+                if (typeof data.threshold === 'number') this.threshold = data.threshold;
+                if (Array.isArray(data.heightTypeMap)) {
+                    this.heightTypeMap = {
+                        grassMax: data.heightTypeMap[0] ?? 3,
+                        rockMax: data.heightTypeMap[1] ?? 7,
+                        snowMax: data.heightTypeMap[2] ?? 12
+                    };
+                } else if (data.heightTypeMap && typeof data.heightTypeMap === 'object') {
+                    this.heightTypeMap = { ...this.heightTypeMap, ...data.heightTypeMap };
+                }
+                if (data.spawn) {
+                    this.spawn = Array.isArray(data.spawn) ? { x: data.spawn[0], y: data.spawn[1], z: data.spawn[2] } : { ...data.spawn };
+                }
+                if (data.goal) {
+                    this.goal = Array.isArray(data.goal) ? { x: data.goal[0], y: data.goal[1], z: data.goal[2] } : { ...data.goal };
+                }
+                if (Array.isArray(data.modifications)) {
+                    this.modifications = data.modifications.map(m => {
+                        if (Array.isArray(m)) {
+                            const [x, y, z, actionOrType, dist] = m;
+                            if (actionOrType === 0 || actionOrType === 'remove') return { x, y, z, action: 'remove' };
+                            const res = { x, y, z, action: 'add', type: actionOrType };
+                            if (dist !== undefined) res.dist = dist;
+                            return res;
+                        }
+                        return m;
+                    });
+                }
             }
 
             this.regenerate(true);

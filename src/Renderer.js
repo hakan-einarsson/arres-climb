@@ -28,11 +28,15 @@ class Renderer {
 
         const posLoc = gl.getAttribLocation(program, 'a_position');
         gl.enableVertexAttribArray(posLoc);
-        gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 20, 0);
+        gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 24, 0);
 
         const texLoc = gl.getAttribLocation(program, 'a_texcoord');
         gl.enableVertexAttribArray(texLoc);
-        gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 20, 12);
+        gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 24, 12);
+
+        const lightLoc = gl.getAttribLocation(program, 'a_light');
+        gl.enableVertexAttribArray(lightLoc);
+        gl.vertexAttribPointer(lightLoc, 1, gl.FLOAT, false, 24, 20);
 
         gl.uniform1f(gl.getUniformLocation(program, 'u_focalLength'), 1.5);
         gl.uniform1f(gl.getUniformLocation(program, 'u_aspectRatio'), aspectRatio);
@@ -61,10 +65,7 @@ class Renderer {
         img.onload = () => {
             gl.bindTexture(gl.TEXTURE_2D, tex);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            [10240, 10241, 10242, 10243].forEach((p, i) => gl.texParameteri(gl.TEXTURE_2D, p, i < 2 ? 9728 : 33071));
         };
         img.src = url;
         return tex;
@@ -84,7 +85,7 @@ class Renderer {
 
     draw() {
         const gl = this.gl;
-        gl.clearColor(0.3, 0.3, 0.5, 1);
+        gl.clearColor(0.25, 0.3, 0.45, 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.activeTexture(gl.TEXTURE0);
@@ -93,7 +94,7 @@ class Renderer {
         const vertices = new Float32Array(this.flatVertices);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW);
-        gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 5);
+        gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
 
         this.flatVertices.length = 0;
     }

@@ -1,21 +1,32 @@
-import { projectBillboard } from './projection.js';
-import { TILE_SIZE } from './tile.js';
-
-const texW = 128, texH = 32, tileSize = 8;
-const epsU = 0.5 / texW, epsV = 0.5 / texH;
-
-function getUV(col, row) {
-    const u0 = (col * tileSize) / texW;
-    const v0 = (row * tileSize) / texH;
-    const u1 = ((col + 1) * tileSize) / texW;
-    const v1 = ((row + 1) * tileSize) / texH;
-    return { u0: u0 + epsU, v0: v0 + epsV, u1: u1 - epsU, v1: v1 - epsV };
-}
+import { projectBillboard, projectGroundQuad } from './projection.js';
+import { TILE_SIZE, getUV } from './tile.js';
+import { gameObjects } from './gameObjects.js';
+import Tile from './tile.js';
+import MovingBlock from './movingBlock.js';
 
 const PLAYER_RUN_UV = [getUV(0, 1), getUV(1, 1), getUV(2, 1), getUV(3, 1)];
 const PLAYER_IDLE_UV = [getUV(4, 1), getUV(5, 1)];
-const PLAYER_JUMP_UV = [getUV(0, 1)];
-const PLAYER_FALL_UV = [getUV(2, 1)];
+const SHADOW_UV = getUV(10, 0);
+
+export function getGroundY(x, z, currentY) {
+    let highest = -10;
+    const gx = Math.floor(x / TILE_SIZE);
+    const gz = Math.floor(z / TILE_SIZE);
+
+    for (let i = 0; i < gameObjects.length; i++) {
+        const obj = gameObjects[i];
+        if (obj instanceof Tile && obj.type !== 'HOLE' && obj.gridX === gx && obj.gridZ === gz) {
+            const topY = (obj.gridY + 1) * TILE_SIZE;
+            if (topY <= currentY + 0.1 && topY > highest) highest = topY;
+        } else if (obj instanceof MovingBlock) {
+            if (x >= obj.x && x <= obj.x + TILE_SIZE && z >= obj.z && z <= obj.z + TILE_SIZE) {
+                const topY = obj.y + TILE_SIZE;
+                if (topY <= currentY + 0.1 && topY > highest) highest = topY;
+            }
+        }
+    }
+    return highest;
+}
 
 function pickFrame(frames, time, fps) {
     return frames[Math.floor(time * fps) % frames.length];
@@ -35,7 +46,6 @@ class Player {
         this.aimX = 0;
         this.aimZ = 1;
         this.animTime = 0;
-        this.hasJumped = false;
     }
 
     spawnAt(gridX, gridY, gridZ) {
@@ -55,19 +65,28 @@ class Player {
     }
 
     render(renderer) {
+        // Ground drop shadow
+        const groundY = getGroundY(this.x, this.z, this.y);
+        if (groundY > -5) {
+            const diff = Math.max(0, this.y - groundY);
+            const size = Math.max(0.10, 0.22 - diff * 0.03);
+            const quad = projectGroundQuad(this.x, groundY + 0.002, this.z, renderer.camera, size, SHADOW_UV, 1.0);
+            if (quad) renderer.addObjectToRender(quad);
+        }
+
         const moving = Math.hypot(this.vx, this.vz) > 0.01;
         let uv;
 
         if (!this.grounded) {
-            uv = this.vy > 0 ? PLAYER_JUMP_UV[0] : PLAYER_FALL_UV[0];
+            uv = this.vy > 0 ? PLAYER_RUN_UV[0] : PLAYER_RUN_UV[2];
         } else if (moving) {
             uv = pickFrame(PLAYER_RUN_UV, this.animTime, 15);
         } else {
             uv = pickFrame(PLAYER_IDLE_UV, this.animTime, 3);
         }
 
-        const tri = projectBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, uv, 1.0, this.facing > 0);
-        if (tri) renderer.addObjectToRender(tri.vertices, tri.depth);
+        const tri = projectBillboard(this.x, this.y, this.z, renderer.camera, this.width, this.height, uv, 1.0, this.facing > 0, 1.0);
+        if (tri) renderer.addObjectToRender(tri.vertices);
     }
 }
 
