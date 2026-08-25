@@ -1,59 +1,44 @@
-// gamepad.js
 let gamepadIndex = null;
-let prevRotateLeft = false;
-let prevRotateRight = false;
-let prevJumpPressed = false;
+let prevRotL = false, prevRotR = false, prevJump = false;
 
-window.addEventListener('gamepadconnected', (e) => {
-    gamepadIndex = e.gamepad.index;
-});
-window.addEventListener('gamepaddisconnected', () => {
-    gamepadIndex = null;
-});
+window.addEventListener('gamepadconnected', e => gamepadIndex = e.gamepad.index);
+window.addEventListener('gamepaddisconnected', () => gamepadIndex = null);
 
 export function getGamepadState() {
     if (gamepadIndex === null) return null;
-
     const gp = navigator.getGamepads()[gamepadIndex];
     if (!gp) return null;
 
-    const deadzone = 0.15;
-    const applyDeadzone = (v) => Math.abs(v) < deadzone ? 0 : v;
+    const dz = v => Math.abs(v) < 0.15 ? 0 : v;
+    const btn = i => gp.buttons[i]?.pressed || false;
 
-    const jumpRaw = gp.buttons[0]?.pressed || false;
-    const jumpJustPressed = jumpRaw && !prevJumpPressed;
-    prevJumpPressed = jumpRaw;
+    const jumpRaw = btn(0);
+    const jumpJustPressed = jumpRaw && !prevJump;
+    const jumpJustReleased = !jumpRaw && prevJump;
+    prevJump = jumpRaw;
 
-    // Analog stick
-    let moveX = applyDeadzone(gp.axes[0]);
-    let moveZ = applyDeadzone(gp.axes[1]) * -1;
+    let moveX = dz(gp.axes[0]);
+    let moveZ = -dz(gp.axes[1]);
 
-    // D-pad som fallback/komplement - override:ar sticken om nåt tryckts
-    const dpadUp = gp.buttons[12]?.pressed;
-    const dpadDown = gp.buttons[13]?.pressed;
-    const dpadLeft = gp.buttons[14]?.pressed;
-    const dpadRight = gp.buttons[15]?.pressed;
+    if (btn(12)) moveZ = 1;
+    if (btn(13)) moveZ = -1;
+    if (btn(14)) moveX = -1;
+    if (btn(15)) moveX = 1;
 
-    if (dpadUp) moveZ = 1;
-    if (dpadDown) moveZ = -1;
-    if (dpadLeft) moveX = -1;
-    if (dpadRight) moveX = 1;
-
-    const jumpPressed = gp.buttons[0]?.pressed || false;
-    const zoomIn = gp.buttons[1]?.pressed || false;  // justera efter vad som känns naturligt
-    const zoomOut = gp.buttons[2]?.pressed || false;
-
-    const rotateLeftRaw = gp.buttons[4]?.pressed || false;  // verifiera rätt index själv
-    const rotateRightRaw = gp.buttons[5]?.pressed || false;
-
-    const rotateLeftJustPressed = rotateLeftRaw && !prevRotateLeft;
-    const rotateRightJustPressed = rotateRightRaw && !prevRotateRight;
-    prevRotateLeft = rotateLeftRaw;
-    prevRotateRight = rotateRightRaw;
+    const rotL = btn(4);
+    const rotR = btn(5);
+    const rotateLeftJustPressed = rotL && !prevRotL;
+    const rotateRightJustPressed = rotR && !prevRotR;
+    prevRotL = rotL;
+    prevRotR = rotR;
 
     return {
         moveX, moveZ,
-        jumpJustPressed, zoomIn, zoomOut,
-        rotateLeftJustPressed, rotateRightJustPressed
+        jumpJustPressed,
+        jumpJustReleased,
+        zoomIn: btn(1),
+        zoomOut: btn(2),
+        rotateLeftJustPressed,
+        rotateRightJustPressed
     };
 }

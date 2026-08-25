@@ -44,10 +44,10 @@ initPointer(canvas);
 
 // Title Screen & Save progress setup
 let isGameStarted = false;
-const titleScreen = document.getElementById('title-screen');
+const titleScreen = document.getElementById('ts');
 const logoCvs = document.getElementById('logo');
-const btnGroup = document.getElementById('btn-group');
-const startBtn = document.getElementById('start-btn');
+const btnGroup = document.getElementById('bg');
+const startBtn = document.getElementById('sb');
 
 if (logoCvs) {
   const ctx = logoCvs.getContext('2d');
@@ -61,10 +61,10 @@ if (logoCvs) {
 
 const savedLvl = getSavedLevel();
 if (savedLvl > 0 && btnGroup && startBtn) {
-  startBtn.textContent = `▶ CONTINUE (LEVEL ${savedLvl})`;
+  startBtn.textContent = `CONTINUE (LEVEL ${savedLvl + 1})`;
   const newGameBtn = document.createElement('button');
-  newGameBtn.className = 'btn btn-sub';
-  newGameBtn.textContent = '🔄 NEW GAME';
+  newGameBtn.className = 'btn btn-s';
+  newGameBtn.textContent = 'NEW GAME';
   newGameBtn.onclick = () => {
     resetProgress();
     startGame(0);

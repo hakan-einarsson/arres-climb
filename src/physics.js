@@ -1,7 +1,6 @@
 import { gameObjects } from './gameObjects.js';
-import Tile from './tile.js';
+import Tile, { TILE_SIZE } from './tile.js';
 import MovingBlock from './movingBlock.js';
-import { TILE_SIZE } from './tile.js';
 import { playJump, playRainbowBounce } from './audio.js';
 
 const GRAVITY = -9.8;
@@ -59,8 +58,7 @@ function moveAxis(entity, axis, delta) {
     for (const solid of nearby) {
         if (boxesOverlap(testPos.x, testCenterY, testPos.z, size, solid.center.x, solid.center.y, solid.center.z, tileSize)) {
             if (axis === 'y' && entity.vy <= 0) {
-                // Katapult-block: Slungar spelaren högt upp i luften vid beröring
-                if (solid.obj.type === 'RAINBOW') {
+                if (solid.obj.type === 4 || solid.obj.type === 'RAINBOW') {
                     entity.y = solid.center.y + TILE_SIZE / 2 + 0.02;
                     entity.vy = 8.5;
                     entity.grounded = false;
@@ -70,7 +68,6 @@ function moveAxis(entity, axis, delta) {
                     playRainbowBounce();
                     return;
                 }
-
                 entity.grounded = true;
                 if (solid.obj instanceof MovingBlock) {
                     entity.groundPlatform = solid.obj;
@@ -85,7 +82,6 @@ function moveAxis(entity, axis, delta) {
 }
 
 export function updatePhysics(entity, dt) {
-    // Om spelaren står på en rörlig plattform, bär med spelaren
     if (entity.grounded && entity.groundPlatform) {
         entity.x += entity.groundPlatform.vx * dt;
         entity.z += entity.groundPlatform.vz * dt;
@@ -100,19 +96,16 @@ export function updatePhysics(entity, dt) {
     moveAxis(entity, 'y', entity.vy * dt);
     moveAxis(entity, 'z', entity.vz * dt);
 
-    // Coyote-timer
     if (entity.grounded) {
         entity.coyoteTimer = 0.1;
     } else if (entity.coyoteTimer > 0) {
         entity.coyoteTimer -= dt;
     }
 
-    // Jump buffer-timer
     if (entity.jumpBufferTimer > 0) {
         entity.jumpBufferTimer -= dt;
     }
 
-    // Utlös hoppet
     if (entity.jumpBufferTimer > 0 && entity.coyoteTimer > 0) {
         entity.vy = entity.jumpForce;
         entity.jumpBufferTimer = 0;

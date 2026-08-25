@@ -6,6 +6,27 @@ const DIST_DIR = path.resolve('dist');
 const OUTPUT_ZIP = path.resolve('dist/index.zip');
 const MAX_BYTES = 13312; // 13 KB limit for js13k
 
+function prepareDist() {
+    const htmlPath = path.join(DIST_DIR, 'index.html');
+    if (!fs.existsSync(htmlPath)) return;
+    let html = fs.readFileSync(htmlPath, 'utf8');
+
+    const assetsDir = path.join(DIST_DIR, 'assets');
+    if (fs.existsSync(assetsDir)) {
+        const jsFiles = fs.readdirSync(assetsDir).filter(f => f.endsWith('.js'));
+        if (jsFiles.length > 0) {
+            const jsFile = jsFiles[0];
+            const jsCode = fs.readFileSync(path.join(assetsDir, jsFile), 'utf8');
+            html = html.replace(
+                /<script type="module" crossorigin src="\/assets\/main-[^"]+"><\/script>/,
+                `<script type="module">${jsCode}</script>`
+            );
+            fs.writeFileSync(htmlPath, html);
+            fs.unlinkSync(path.join(assetsDir, jsFile));
+        }
+    }
+}
+
 function getFiles(dir, base = '') {
     let files = [];
     if (!fs.existsSync(dir)) return files;
@@ -63,40 +84,40 @@ function createZip(files, outputPath) {
 
         // Local file header (30 bytes + name)
         const localHeader = Buffer.alloc(30 + nameBuf.length);
-        localHeader.writeUInt32LE(0x04034b50, 0); // signature
-        localHeader.writeUInt16LE(20, 4);         // version needed (2.0)
-        localHeader.writeUInt16LE(0, 6);          // flags
-        localHeader.writeUInt16LE(compMethod, 8);  // compression method
-        localHeader.writeUInt16LE(0, 10);         // time
-        localHeader.writeUInt16LE(0, 12);         // date
-        localHeader.writeUInt32LE(crc, 14);       // crc32
-        localHeader.writeUInt32LE(compressedSize, 18); // compressed size
-        localHeader.writeUInt32LE(uncompressedSize, 22); // uncompressed size
-        localHeader.writeUInt16LE(nameBuf.length, 26); // name length
-        localHeader.writeUInt16LE(0, 28);         // extra length
+        localHeader.writeUInt32LE(0x04034b50, 0);
+        localHeader.writeUInt16LE(20, 4);
+        localHeader.writeUInt16LE(0, 6);
+        localHeader.writeUInt16LE(compMethod, 8);
+        localHeader.writeUInt16LE(0, 10);
+        localHeader.writeUInt16LE(0, 12);
+        localHeader.writeUInt32LE(crc, 14);
+        localHeader.writeUInt32LE(compressedSize, 18);
+        localHeader.writeUInt32LE(uncompressedSize, 22);
+        localHeader.writeUInt16LE(nameBuf.length, 26);
+        localHeader.writeUInt16LE(0, 28);
         nameBuf.copy(localHeader, 30);
 
         buffers.push(localHeader, compressedData);
 
         // Central directory header (46 bytes + name)
         const centralHeader = Buffer.alloc(46 + nameBuf.length);
-        centralHeader.writeUInt32LE(0x02014b50, 0); // signature
-        centralHeader.writeUInt16LE(20, 4);         // version made by
-        centralHeader.writeUInt16LE(20, 6);         // version needed
-        centralHeader.writeUInt16LE(0, 8);          // flags
-        centralHeader.writeUInt16LE(compMethod, 10); // compression method
-        centralHeader.writeUInt16LE(0, 12);         // time
-        centralHeader.writeUInt16LE(0, 14);         // date
-        centralHeader.writeUInt32LE(crc, 16);       // crc32
-        centralHeader.writeUInt32LE(compressedSize, 20); // compressed size
-        centralHeader.writeUInt32LE(uncompressedSize, 24); // uncompressed size
-        centralHeader.writeUInt16LE(nameBuf.length, 28); // name length
-        centralHeader.writeUInt16LE(0, 30);         // extra length
-        centralHeader.writeUInt16LE(0, 32);         // comment length
-        centralHeader.writeUInt16LE(0, 34);         // disk start
-        centralHeader.writeUInt16LE(0, 36);         // internal attrs
-        centralHeader.writeUInt32LE(0, 38);         // external attrs
-        centralHeader.writeUInt32LE(offset, 42);    // local header offset
+        centralHeader.writeUInt32LE(0x02014b50, 0);
+        centralHeader.writeUInt16LE(20, 4);
+        centralHeader.writeUInt16LE(20, 6);
+        centralHeader.writeUInt16LE(0, 8);
+        centralHeader.writeUInt16LE(compMethod, 10);
+        centralHeader.writeUInt16LE(0, 12);
+        centralHeader.writeUInt16LE(0, 14);
+        centralHeader.writeUInt32LE(crc, 16);
+        centralHeader.writeUInt32LE(compressedSize, 20);
+        centralHeader.writeUInt32LE(uncompressedSize, 24);
+        centralHeader.writeUInt16LE(nameBuf.length, 28);
+        centralHeader.writeUInt16LE(0, 30);
+        centralHeader.writeUInt16LE(0, 32);
+        centralHeader.writeUInt16LE(0, 34);
+        centralHeader.writeUInt16LE(0, 36);
+        centralHeader.writeUInt32LE(0, 38);
+        centralHeader.writeUInt32LE(offset, 42);
         nameBuf.copy(centralHeader, 46);
 
         centralHeaders.push(centralHeader);
@@ -112,14 +133,14 @@ function createZip(files, outputPath) {
 
     // End of central directory record (22 bytes)
     const eocd = Buffer.alloc(22);
-    eocd.writeUInt32LE(0x06054b50, 0); // signature
-    eocd.writeUInt16LE(0, 4);          // disk number
-    eocd.writeUInt16LE(0, 6);          // start disk
-    eocd.writeUInt16LE(files.length, 8); // records on this disk
-    eocd.writeUInt16LE(files.length, 10); // total records
-    eocd.writeUInt32LE(centralDirSize, 12); // central dir size
-    eocd.writeUInt32LE(centralDirOffset, 16); // offset of central dir
-    eocd.writeUInt16LE(0, 20);         // comment length
+    eocd.writeUInt32LE(0x06054b50, 0);
+    eocd.writeUInt16LE(0, 4);
+    eocd.writeUInt16LE(0, 6);
+    eocd.writeUInt16LE(files.length, 8);
+    eocd.writeUInt16LE(files.length, 10);
+    eocd.writeUInt32LE(centralDirSize, 12);
+    eocd.writeUInt32LE(centralDirOffset, 16);
+    eocd.writeUInt16LE(0, 20);
 
     buffers.push(eocd);
 
@@ -142,5 +163,6 @@ function createZip(files, outputPath) {
     console.log(`========================================\n`);
 }
 
+prepareDist();
 const files = getFiles(DIST_DIR);
 createZip(files, OUTPUT_ZIP);

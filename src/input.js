@@ -7,36 +7,165 @@ import { levelManager } from './levelManager.js';
 
 const keys = {};
 const leftMouseDown = { value: false };
-const JUMP_CUTOFF_FACTOR = 0.4; // hur mycket vy behålls om du släpper tidigt
+const JUMP_CUTOFF_FACTOR = 0.4;
 const MIN_DISTANCE = 1.5;
 const MAX_DISTANCE = 8;
 const CAMERA_ZOOM_SPEED = 5;
 
 window.addEventListener('keydown', (e) => {
     unlockAudio();
+    if (e.repeat) return;
     keys[e.key.toLowerCase()] = true;
 
     if (e.code === 'Space') {
-        player.jumpBufferTimer = 0.1;
+        player.jumpBufferTimer = 0.12;
     }
 
     if (e.key === 'm' || e.key === 'M') {
         const muted = toggleMute();
-        levelManager.showBanner(muted ? '🔇 Muted' : '🔊 Sound On', 1.2);
+        levelManager.showBanner(muted ? 'Muted' : 'Sound On', 1.2);
     }
 });
+
 window.addEventListener('keyup', (e) => {
     keys[e.key.toLowerCase()] = false;
 
     if (e.code === 'Space' && player.vy > 0) {
-        player.vy *= JUMP_CUTOFF_FACTOR; // jump cutoff, oförändrad
+        player.vy *= JUMP_CUTOFF_FACTOR;
     }
 });
 
-
 const mouseDelta = { x: 0, y: 0 };
 
+let touchMoveX = 0, touchMoveZ = 0;
+let touchRotateL = false, touchRotateR = false;
+let touchZoomIn = false, touchZoomOut = false;
+
+export function initTouchControls() {
+    const touchUI = document.getElementById('t-ui');
+    const dpad = document.getElementById('t-pad');
+    const stick = document.getElementById('t-stk');
+    const btnJump = document.getElementById('bj');
+    const btnRotL = document.getElementById('brl');
+    const btnRotR = document.getElementById('brr');
+    const btnZoomIn = document.getElementById('bzi');
+    const btnZoomOut = document.getElementById('bzo');
+
+    if (!touchUI || !dpad) return;
+
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        touchUI.style.display = 'block';
+    }
+
+    let touchId = null;
+    let centerX = 0, centerY = 0;
+    const maxRadius = 38;
+
+    const handleTouch = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            if (t.identifier === touchId) {
+                const dx = t.clientX - centerX;
+                const dy = t.clientY - centerY;
+                const dist = Math.hypot(dx, dy);
+                const clamped = Math.min(dist, maxRadius);
+                const angle = Math.atan2(dy, dx);
+
+                const stickX = Math.cos(angle) * clamped;
+                const stickY = Math.sin(angle) * clamped;
+                if (stick) {
+                    stick.style.transform = `translate(${stickX}px, ${stickY}px)`;
+                }
+
+                if (dist > 6) {
+                    touchMoveX = dx / Math.max(dist, maxRadius);
+                    touchMoveZ = -dy / Math.max(dist, maxRadius);
+                } else {
+                    touchMoveX = 0;
+                    touchMoveZ = 0;
+                }
+            }
+        }
+    };
+
+    dpad.addEventListener('touchstart', (e) => {
+        unlockAudio();
+        e.preventDefault();
+        const rect = dpad.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+        touchId = e.changedTouches[0].identifier;
+        handleTouch(e);
+    }, { passive: false });
+
+    dpad.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        handleTouch(e);
+    }, { passive: false });
+
+    const endTouch = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === touchId) {
+                touchId = null;
+                touchMoveX = 0;
+                touchMoveZ = 0;
+                if (stick) stick.style.transform = 'translate(0px, 0px)';
+            }
+        }
+    };
+
+    dpad.addEventListener('touchend', endTouch);
+    dpad.addEventListener('touchcancel', endTouch);
+
+    if (btnJump) {
+        btnJump.addEventListener('touchstart', (e) => {
+            unlockAudio();
+            e.preventDefault();
+            player.jumpBufferTimer = 0.12;
+        }, { passive: false });
+        btnJump.addEventListener('touchend', () => {
+            if (player.vy > 0) player.vy *= JUMP_CUTOFF_FACTOR;
+        });
+    }
+
+    if (btnRotL) {
+        btnRotL.addEventListener('touchstart', (e) => {
+            unlockAudio();
+            e.preventDefault();
+            touchRotateL = true;
+        }, { passive: false });
+    }
+
+    if (btnRotR) {
+        btnRotR.addEventListener('touchstart', (e) => {
+            unlockAudio();
+            e.preventDefault();
+            touchRotateR = true;
+        }, { passive: false });
+    }
+
+    if (btnZoomIn) {
+        btnZoomIn.addEventListener('touchstart', (e) => {
+            unlockAudio();
+            e.preventDefault();
+            touchZoomIn = true;
+        }, { passive: false });
+        btnZoomIn.addEventListener('touchend', () => touchZoomIn = false);
+    }
+
+    if (btnZoomOut) {
+        btnZoomOut.addEventListener('touchstart', (e) => {
+            unlockAudio();
+            e.preventDefault();
+            touchZoomOut = true;
+        }, { passive: false });
+        btnZoomOut.addEventListener('touchend', () => touchZoomOut = false);
+    }
+}
+
 export function initPointer(canvas) {
+    initTouchControls();
+
     canvas.addEventListener('mousedown', (e) => {
         unlockAudio();
         if (e.button === 0) {
@@ -59,6 +188,14 @@ export function initPointer(canvas) {
     });
 }
 
+function snap8Way(x, z) {
+    const len = Math.hypot(x, z);
+    if (len < 0.2) return [0, 0];
+    const angle = Math.atan2(z, x);
+    const snapped = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+    return [Math.cos(snapped), Math.sin(snapped)];
+}
+
 export function update(dt) {
     const input = getInputState();
 
@@ -76,18 +213,16 @@ export function update(dt) {
         playCameraRotate();
     }
 
-    let moveX = input.moveX, moveZ = input.moveZ;
-    const moveLength = Math.hypot(moveX, moveZ);
-    if (moveLength > 0) {
-        moveX /= moveLength;
-        moveZ /= moveLength;
+    const [snappedX, snappedZ] = snap8Way(input.moveX, input.moveZ);
+    const moveLength = Math.hypot(snappedX, snappedZ);
 
-        const [rotX, rotZ] = rotateY(moveX, moveZ, camera.yaw);
+    if (moveLength > 0) {
+        const [rotX, rotZ] = rotateY(snappedX, snappedZ, camera.yaw);
         player.aimX = rotX;
         player.aimZ = rotZ;
 
-        if (moveX < 0) player.facing = -1;
-        else if (moveX > 0) player.facing = 1;
+        if (snappedX < -0.1) player.facing = -1;
+        else if (snappedX > 0.1) player.facing = 1;
 
         player.vx = rotX * player.speed;
         player.vz = rotZ * player.speed;
@@ -95,8 +230,6 @@ export function update(dt) {
         player.vx = 0;
         player.vz = 0;
     }
-
-    if (input.jumpPressed) player.jumpBufferTimer = 0.1;
 
     camera.followTarget(player);
 }
@@ -110,24 +243,40 @@ function getInputState() {
     if (keys['a']) moveX -= 1;
     if (keys['d']) moveX += 1;
 
-    let jumpPressed = false; // hanteras separat nedan pga buffer-logik, se kommentar
-    let zoomIn = keys['+'] || keys['='];
-    let zoomOut = keys['-'];
+    if (Math.abs(touchMoveX) > 0 || Math.abs(touchMoveZ) > 0) {
+        moveX = touchMoveX;
+        moveZ = touchMoveZ;
+    }
+
+    let zoomIn = keys['+'] || keys['='] || touchZoomIn;
+    let zoomOut = keys['-'] || touchZoomOut;
     let rotateLeft = false, rotateRight = false;
 
+    if (touchRotateL) {
+        rotateLeft = true;
+        touchRotateL = false;
+    }
+    if (touchRotateR) {
+        rotateRight = true;
+        touchRotateR = false;
+    }
+
     if (gp) {
-        // Om gamepad-stick rör sig, låt det override:a tangentbordet
         if (Math.abs(gp.moveX) > 0 || Math.abs(gp.moveZ) > 0) {
             moveX = gp.moveX;
             moveZ = gp.moveZ;
         }
-        if (gp.jumpPressed) jumpPressed = true;
+        if (gp.jumpJustPressed) {
+            player.jumpBufferTimer = 0.12;
+        }
+        if (gp.jumpJustReleased && player.vy > 0) {
+            player.vy *= JUMP_CUTOFF_FACTOR;
+        }
         if (gp.zoomIn) zoomIn = true;
         if (gp.zoomOut) zoomOut = true;
         if (gp.rotateLeftJustPressed) rotateLeft = true;
         if (gp.rotateRightJustPressed) rotateRight = true;
-        if (gp.jumpJustPressed) jumpPressed = true; // bara vid övergång, inte hela tiden
     }
 
-    return { moveX, moveZ, jumpPressed, zoomIn, zoomOut, rotateLeft, rotateRight };
+    return { moveX, moveZ, zoomIn, zoomOut, rotateLeft, rotateRight };
 }

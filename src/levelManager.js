@@ -10,17 +10,16 @@ export function getLevel(index) {
     if (!l) return null;
     if (Array.isArray(l)) {
         return {
-            name: l[0],
-            seed: l[1],
-            size: l[2],
-            maxHeight: l[3],
-            islandFactor: l[4],
-            scale: l[5],
-            threshold: l[6],
-            heightTypeMap: l[7],
-            spawn: l[8],
-            goal: l[9],
-            modifications: l[10] || []
+            seed: l[0],
+            size: l[1],
+            maxHeight: l[2],
+            islandFactor: l[3],
+            scale: l[4],
+            threshold: l[5],
+            heightTypeMap: l[6],
+            spawn: l[7],
+            goal: l[8],
+            modifications: l[9] || []
         };
     }
     return l;
@@ -95,24 +94,24 @@ export class LevelManager {
         coin.setPosition(goal.x, goal.y, goal.z);
 
         camera.followTarget(player);
-        this.showBanner(`🏆 ${level.name}`);
+        this.showBanner('Level ' + (this.currentLevelIndex + 1));
     }
 
     nextLevel() {
         if (this.currentLevelIndex + 1 < LEVELS.length) {
-            this.showBanner('✨ Level Complete!', 1.5);
+            this.showBanner('Level Complete!', 1.5);
             playLevelComplete();
             setTimeout(() => this.loadLevel(this.currentLevelIndex + 1), 800);
         } else {
             this.isVictory = true;
-            this.showBanner('🎉 VICTORY! All Coins Found!', 10.0);
+            this.showBanner('VICTORY! All Coins Found!', 10.0);
             playVictory();
         }
     }
 
     restartCurrentLevel() {
         playFall();
-        this.showBanner('💀 Fell into the void!', 1.8);
+        this.showBanner('Fell into the void!', 1.8);
         this.loadLevel(this.currentLevelIndex);
     }
 
