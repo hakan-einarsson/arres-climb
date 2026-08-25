@@ -25,7 +25,9 @@ class World {
         if (typeof config.islandFactor === 'number') this.islandFactor = config.islandFactor;
         if (typeof config.scale === 'number') this.scale = config.scale;
         if (typeof config.threshold === 'number') this.threshold = config.threshold;
-        if (config.heightTypeMap && typeof config.heightTypeMap === 'object') {
+        if (Array.isArray(config.heightTypeMap)) {
+            this.heightTypeMap = { grassMax: config.heightTypeMap[0], rockMax: config.heightTypeMap[1], snowMax: config.heightTypeMap[2] };
+        } else if (config.heightTypeMap && typeof config.heightTypeMap === 'object') {
             this.heightTypeMap = { ...this.heightTypeMap, ...config.heightTypeMap };
         }
         this.perm = generatePermTable(this.seed);
@@ -35,7 +37,19 @@ class World {
         if (!Array.isArray(modifications)) return;
 
         for (const mod of modifications) {
-            const { x, y, z, action, type, dist } = mod;
+            let x, y, z, action, type, dist;
+            if (Array.isArray(mod)) {
+                [x, y, z] = mod;
+                if (mod[3] === 0 || mod[3] === 'remove') {
+                    action = 'remove';
+                } else {
+                    action = 'add';
+                    type = mod[3];
+                    dist = mod[4];
+                }
+            } else {
+                ({ x, y, z, action, type, dist } = mod);
+            }
             const colKey = `${x},${z}`;
 
             if (action === 'remove') {

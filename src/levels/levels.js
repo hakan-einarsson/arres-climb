@@ -1,340 +1,38 @@
-export const LEVELS = [
-    {
-        name: "Level 0: The Beginning",
-        "seed": 75257,
-        "size": 5,
-        "maxHeight": 13,
-        "islandFactor": 4.5,
-        "scale": 0.7,
-        "threshold": 0.5,
-        "heightTypeMap": {
-            "grassMax": 3,
-            "rockMax": 7,
-            "snowMax": 12
-        },
-        "spawn": {
-            "x": 3,
-            "y": 1,
-            "z": -1
-        },
-        "goal": {
-            "x": 0,
-            "y": 7,
-            "z": 1
-        },
-        "modifications": [
-            {
-                "x": -2,
-                "y": 1,
-                "z": 3,
-                "action": "add",
-                "type": "GRASS"
-            },
-            {
-                "x": -1,
-                "y": 1,
-                "z": 3,
-                "action": "add",
-                "type": "GRASS"
-            },
-            {
-                "x": -2,
-                "y": 1,
-                "z": -2,
-                "action": "add",
-                "type": "MOVING_Z",
-                "dist": 5
-            },
-            {
-                "x": -2,
-                "y": 0,
-                "z": -1,
-                "action": "remove"
-            },
-            {
-                "x": 1,
-                "y": 4,
-                "z": 1,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": 3,
-                "y": 5,
-                "z": 3,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": 2,
-                "y": 5,
-                "z": 3,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": 1,
-                "y": 5,
-                "z": 3,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": 0,
-                "y": 5,
-                "z": 3,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": -1,
-                "y": 5,
-                "z": 3,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": 0,
-                "y": 6,
-                "z": 2,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": 0,
-                "y": 6,
-                "z": 1,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": -1,
-                "y": 0,
-                "z": 2,
-                "action": "remove"
-            },
-            {
-                "x": -1,
-                "y": 3,
-                "z": 0,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": -1,
-                "y": 3,
-                "z": 3,
-                "action": "add",
-                "type": "ROCK"
-            }
-        ]
-    },
-    {
-        name: "Level 1: Green Meadows",
-        "seed": 2,
-        "size": 5,
-        "maxHeight": 12,
-        "islandFactor": 1,
-        "scale": 0.45,
-        "threshold": 0.22,
-        "heightTypeMap": {
-            "grassMax": 3,
-            "rockMax": 7,
-            "snowMax": 12
-        },
-        "spawn": {
-            "x": 2,
-            "y": 1,
-            "z": -3
-        },
-        "goal": {
-            "x": 0,
-            "y": 10,
-            "z": 1
-        },
-        "modifications": [
-            {
-                "x": 0,
-                "y": 4,
-                "z": 2,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": -1,
-                "y": 5,
-                "z": 0,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": 2,
-                "y": 7,
-                "z": 1,
-                "action": "add",
-                "type": "SNOW"
-            },
-            {
-                "x": 1,
-                "y": 8,
-                "z": -1,
-                "action": "add",
-                "type": "SNOW"
-            },
-            {
-                "x": 0,
-                "y": 9,
-                "z": 1,
-                "action": "add",
-                "type": "SNOW"
-            },
-            {
-                "x": -1,
-                "y": 4,
-                "z": 2,
-                "action": "add",
-                "type": "ROCK"
-            },
-            {
-                "x": 2,
-                "y": 7,
-                "z": 0,
-                "action": "add",
-                "type": "SNOW"
-            },
-            {
-                "x": 1,
-                "y": 6,
-                "z": 2,
-                "action": "add",
-                "type": "MOVING_X",
-                "dist": 3
-            },
-            {
-                "x": 2,
-                "y": 0,
-                "z": 1,
-                "action": "add",
-                "type": "RAINBOW"
-            }
-        ]
-    },
+const G = 'GRASS', R = 'ROCK', S = 'SNOW', RB = 'RAINBOW', MX = 'MOVING_X', MZ = 'MOVING_Z';
 
-    {
-        name: "Level 2: Rocky Cliffs",
-        "seed": 2,
-        "size": 4,
-        "maxHeight": 11,
-        "islandFactor": 3,
-        "scale": 0.3,
-        "threshold": 0.21,
-        "heightTypeMap": {
-            "grassMax": 3,
-            "rockMax": 7,
-            "snowMax": 12
-        },
-        "spawn": {
-            "x": -1,
-            "y": 1,
-            "z": -3
-        },
-        "goal": {
-            "x": 0,
-            "y": 8,
-            "z": 1
-        },
-        "modifications": [
-            {
-                "x": -2,
-                "y": 0,
-                "z": 0,
-                "action": "add",
-                "type": "GRASS"
-            },
-            {
-                "x": 3,
-                "y": 0,
-                "z": 0,
-                "action": "remove"
-            },
-            {
-                "x": 3,
-                "y": 0,
-                "z": 1,
-                "action": "remove"
-            },
-            {
-                "x": 2,
-                "y": 0,
-                "z": 3,
-                "action": "remove"
-            },
-            {
-                "x": 2,
-                "y": 1,
-                "z": 0,
-                "action": "add",
-                "type": "GRASS"
-            },
-            {
-                "x": 2,
-                "y": 1,
-                "z": -1,
-                "action": "add",
-                "type": "GRASS"
-            },
-            {
-                "x": 2,
-                "y": 1,
-                "z": -2,
-                "action": "add",
-                "type": "GRASS"
-            }
+export const LEVELS = [
+    [
+        "Level 0: The Beginning", 75257, 5, 13, 4.5, 0.7, 0.5, [3, 7, 12], [3, 1, -1], [0, 7, 1],
+        [
+            [-2, 1, 3, G], [-1, 1, 3, G], [-2, 1, -2, MZ, 5], [-2, 0, -1, 0],
+            [1, 4, 1, R], [3, 5, 3, R], [2, 5, 3, R], [1, 5, 3, R],
+            [0, 5, 3, R], [-1, 5, 3, R], [0, 6, 2, R], [0, 6, 1, R],
+            [-1, 0, 2, 0], [-1, 3, 0, R], [-1, 3, 3, R]
         ]
-    },
-    {
-        name: "Level 3: Snowy Peaks",
-        "seed": 2,
-        "size": 20,
-        "maxHeight": 17,
-        "islandFactor": 2,
-        "scale": 0.1,
-        "threshold": 0.42,
-        "heightTypeMap": {
-            "grassMax": 3,
-            "rockMax": 7,
-            "snowMax": 12
-        },
-        "spawn": {
-            "x": 6,
-            "y": 1,
-            "z": -10
-        },
-        "goal": {
-            "x": 0,
-            "y": 11,
-            "z": 4
-        },
-        "modifications": []
-    },
-    {
-        name: "Level 4: Rainbow Summit",
-        seed: 42,
-        size: 7,
-        maxHeight: 14,
-        islandFactor: 3.2,
-        scale: 0.4,
-        threshold: 0.22,
-        heightTypeMap: { grassMax: 4, rockMax: 8, snowMax: 12 },
-        spawn: { x: -4, y: 2, z: -4 },
-        goal: { x: 0, y: 14, z: 0 },
-        modifications: [
-            { x: -3, y: 5, z: -3, action: "add", type: "ROCK" },
-            { x: -2, y: 8, z: -2, action: "add", type: "SNOW" },
-            { x: -1, y: 11, z: -1, action: "add", type: "RAINBOW" },
-            { x: 0, y: 13, z: 0, action: "add", type: "RAINBOW" }
+    ],
+    [
+        "Level 1: Green Meadows", 2, 5, 12, 1, 0.45, 0.22, [3, 7, 12], [2, 1, -3], [0, 10, 1],
+        [
+            [0, 4, 2, R], [-1, 5, 0, R], [2, 7, 1, S], [1, 8, -1, S],
+            [0, 9, 1, S], [-1, 4, 2, R], [2, 7, 0, S], [1, 6, 2, MX, 3], [2, 0, 1, RB]
         ]
-    }
+    ],
+    [
+        "Level 2: Rocky Cliffs", 2, 4, 11, 3, 0.3, 0.21, [3, 7, 12], [-1, 1, -3], [0, 8, 1],
+        [
+            [-2, 0, 0, G], [3, 0, 0, 0], [3, 0, 1, 0], [2, 0, 3, 0],
+            [2, 1, 0, G], [2, 1, -1, G], [2, 1, -2, G]
+        ]
+    ],
+    [
+        "Level 3: Snowy Peaks", 2, 20, 17, 2, 0.1, 0.42, [3, 7, 12], [6, 1, -10], [0, 11, 4], []
+    ],
+    [
+        "Level 4: Rainbow Summit", 42, 7, 14, 3.2, 0.4, 0.22, [4, 8, 12], [-4, 2, -4], [0, 14, 0],
+        [
+            [-3, 5, -3, R], [-2, 8, -2, S], [-1, 11, -1, RB], [0, 13, 0, RB]
+        ]
+    ]
 ];
 
 export default LEVELS;

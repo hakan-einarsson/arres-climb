@@ -6,6 +6,11 @@ import Renderer from './Renderer.js';
 import { initPointer } from './input.js';
 import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
+import { unlockAudio } from './audio.js';
+
+window.addEventListener('pointerdown', unlockAudio, { once: true });
+window.addEventListener('keydown', unlockAudio, { once: true });
+window.addEventListener('touchstart', unlockAudio, { once: true });
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');

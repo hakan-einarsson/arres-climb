@@ -2,6 +2,8 @@ import { camera } from './camera.js';
 import { player } from './player.js';
 import { rotateY } from './update.js';
 import { getGamepadState } from './gamepad.js';
+import { playCameraRotate, toggleMute, unlockAudio } from './audio.js';
+import { levelManager } from './levelManager.js';
 
 const keys = {};
 const leftMouseDown = { value: false };
@@ -11,10 +13,16 @@ const MAX_DISTANCE = 8;
 const CAMERA_ZOOM_SPEED = 5;
 
 window.addEventListener('keydown', (e) => {
+    unlockAudio();
     keys[e.key.toLowerCase()] = true;
 
     if (e.code === 'Space') {
         player.jumpBufferTimer = 0.1;
+    }
+
+    if (e.key === 'm' || e.key === 'M') {
+        const muted = toggleMute();
+        levelManager.showBanner(muted ? '🔇 Muted' : '🔊 Sound On', 1.2);
     }
 });
 window.addEventListener('keyup', (e) => {
@@ -30,6 +38,7 @@ const mouseDelta = { x: 0, y: 0 };
 
 export function initPointer(canvas) {
     canvas.addEventListener('mousedown', (e) => {
+        unlockAudio();
         if (e.button === 0) {
             canvas.requestPointerLock();
             leftMouseDown.value = true;
@@ -59,10 +68,12 @@ export function update(dt) {
     if (keys['e'] || input.rotateRight) {
         camera.rotateStep(1);
         keys['e'] = false;
+        playCameraRotate();
     }
     if (keys['q'] || input.rotateLeft) {
         camera.rotateStep(-1);
         keys['q'] = false;
+        playCameraRotate();
     }
 
     let moveX = input.moveX, moveZ = input.moveZ;

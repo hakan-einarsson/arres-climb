@@ -36,13 +36,13 @@ const textureAtlas = {
 };
 
 
-function createBlock(gridX, gridY, gridZ, type = 'GRASS', tileSize = TILE_SIZE, height = TILE_SIZE) {
-    const x0 = gridX * tileSize;
-    const x1 = x0 + tileSize;
-    const z0 = gridZ * tileSize;
-    const z1 = z0 + tileSize;
-    const y0 = gridY * height;
-    const y1 = y0 + height;
+export function createBlock(x, y, z, type = 'GRASS', isWorld = false) {
+    const x0 = isWorld ? x : x * TILE_SIZE;
+    const y0 = isWorld ? y : y * TILE_SIZE;
+    const z0 = isWorld ? z : z * TILE_SIZE;
+    const x1 = x0 + TILE_SIZE;
+    const y1 = y0 + TILE_SIZE;
+    const z1 = z0 + TILE_SIZE;
 
     const { u0: gu0, v0: gv0, u1: gu1, v1: gv1 } = textureAtlas[type].top;
     const { u0: du0, v0: dv0, u1: du1, v1: dv1 } = textureAtlas[type].bottom;
@@ -77,7 +77,7 @@ function createBlock(gridX, gridY, gridZ, type = 'GRASS', tileSize = TILE_SIZE, 
 
 const NEAR = 0.3; // samma near-plane-tröskel som innan
 
-function projectTriangle(p1, p2, p3, camera) {
+export function projectTriangle(p1, p2, p3, camera) {
     const va = worldToView(p1[0], p1[1], p1[2], camera);
     const vb = worldToView(p2[0], p2[1], p2[2], camera);
     const vc = worldToView(p3[0], p3[1], p3[2], camera);

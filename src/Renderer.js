@@ -6,122 +6,90 @@ class Renderer {
     constructor(canvas, camera, aspectRatio = 1.0) {
         this.camera = camera;
         this.aspectRatio = aspectRatio;
-        this.gl = canvas.getContext('webgl2');
-        if (!this.gl) {
-            console.error('WebGL not supported');
-        }
+        const gl = canvas.getContext('webgl2');
+        this.gl = gl;
 
-        const vertexShader = this.createShader(this.gl, this.gl.VERTEX_SHADER, vertexShaderSource);
-        const fragmentShader = this.createShader(this.gl, this.gl.FRAGMENT_SHADER, fragmentShaderSource);
+        const vs = this.createShader(gl.VERTEX_SHADER, vertexShaderSource);
+        const fs = this.createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+        const program = gl.createProgram();
+        gl.attachShader(program, vs);
+        gl.attachShader(program, fs);
+        gl.linkProgram(program);
+        gl.useProgram(program);
 
-        const program = this.gl.createProgram();
-        this.gl.attachShader(program, vertexShader);
-        this.gl.attachShader(program, fragmentShader);
-        this.gl.linkProgram(program);
-        if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-            console.error('Error linking program:', this.gl.getProgramInfoLog(program));
-        }
-
-        this.gl.useProgram(program);
-
-        this.positionBuffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-        this.gl.enable(this.gl.BLEND);
-        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+        this.positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         this.texture = this.loadTexture(textureUrl);
 
-        const uTextureLoc = this.gl.getUniformLocation(program, 'u_texture');
-        this.gl.uniform1i(uTextureLoc, 0); // texture unit 0
-        const positionLocation = this.gl.getAttribLocation(program, 'a_position');
-        this.gl.enableVertexAttribArray(positionLocation);
-        this.gl.vertexAttribPointer(
-            positionLocation,
-            3,                                    // x, y, z nu
-            this.gl.FLOAT,
-            false,
-            5 * Float32Array.BYTES_PER_ELEMENT,   // stride: 5 floats per vertex
-            0
-        );
+        gl.uniform1i(gl.getUniformLocation(program, 'u_texture'), 0);
 
-        const texcoordLocation = this.gl.getAttribLocation(program, 'a_texcoord');
-        this.gl.enableVertexAttribArray(texcoordLocation);
-        this.gl.vertexAttribPointer(
-            texcoordLocation,
-            2,
-            this.gl.FLOAT,
-            false,
-            5 * Float32Array.BYTES_PER_ELEMENT,
-            3 * Float32Array.BYTES_PER_ELEMENT    // UV börjar efter x,y,z
-        );
+        const posLoc = gl.getAttribLocation(program, 'a_position');
+        gl.enableVertexAttribArray(posLoc);
+        gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 20, 0);
 
-        const uFocalLengthLoc = this.gl.getUniformLocation(program, 'u_focalLength');
-        this.gl.uniform1f(uFocalLengthLoc, 1.5);
-        const uAspectRatioLoc = this.gl.getUniformLocation(program, 'u_aspectRatio');
-        this.gl.uniform1f(uAspectRatioLoc, aspectRatio);
-        const uNearLoc = this.gl.getUniformLocation(program, 'u_near');
-        const uFarLoc = this.gl.getUniformLocation(program, 'u_far');
-        this.gl.uniform1f(uNearLoc, 0.3);   // samma som din NEAR-tröskel
-        this.gl.uniform1f(uFarLoc, 100.0);  // långt bortom din scen
+        const texLoc = gl.getAttribLocation(program, 'a_texcoord');
+        gl.enableVertexAttribArray(texLoc);
+        gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 20, 12);
 
-        this.gl.enable(this.gl.DEPTH_TEST);
+        gl.uniform1f(gl.getUniformLocation(program, 'u_focalLength'), 1.5);
+        gl.uniform1f(gl.getUniformLocation(program, 'u_aspectRatio'), aspectRatio);
+        gl.uniform1f(gl.getUniformLocation(program, 'u_near'), 0.3);
+        gl.uniform1f(gl.getUniformLocation(program, 'u_far'), 100.0);
+        gl.enable(gl.DEPTH_TEST);
 
-        this.objectsToRender = [];
+        this.flatVertices = [];
     }
 
-    createShader(gl, type, source) {
-        const shader = gl.createShader(type);
-        gl.shaderSource(shader, source);
-        gl.compileShader(shader);
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            console.error('Error compiling shader:', gl.getShaderInfoLog(shader));
-            gl.deleteShader(shader);
-            return null;
-        }
-        return shader;
+    createShader(type, source) {
+        const gl = this.gl;
+        const s = gl.createShader(type);
+        gl.shaderSource(s, source);
+        gl.compileShader(s);
+        return s;
     }
+
     loadTexture(url) {
         const gl = this.gl;
-        const texture = gl.createTexture();
+        const tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 255, 255]));
 
-        // Sätt en 1x1 placeholder-pixel direkt, så inget kraschar innan bilden laddats
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-            new Uint8Array([255, 0, 255, 255])); // magenta = "syns om texturen inte laddat än"
-
-        const image = new Image();
-        image.onload = () => {
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        const img = new Image();
+        img.onload = () => {
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         };
-        image.src = url;
-
-        return texture;
+        img.src = url;
+        return tex;
     }
-    addObjectToRender(vertices, depth) {
-        this.objectsToRender.push({ vertices, depth });
-    }
-    draw() {
-        this.gl.clearColor(0.3, 0.3, 0.5, 1);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-        this.gl.activeTexture(this.gl.TEXTURE0);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-
-        const flat = [];
-        for (const obj of this.objectsToRender) {
-            flat.push(...obj.vertices);
+    addObjectToRender(vertices) {
+        for (let i = 0; i < vertices.length; i++) {
+            this.flatVertices.push(vertices[i]);
         }
+    }
 
-        const vertices = new Float32Array(flat);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.DYNAMIC_DRAW);
-        this.gl.drawArrays(this.gl.TRIANGLES, 0, vertices.length / 5); // OBS: /5 nu, inte /4
+    draw() {
+        const gl = this.gl;
+        gl.clearColor(0.3, 0.3, 0.5, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        this.objectsToRender = [];
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+        const vertices = new Float32Array(this.flatVertices);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW);
+        gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 5);
+
+        this.flatVertices.length = 0;
     }
 }
+
 export default Renderer;
