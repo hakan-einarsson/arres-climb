@@ -7,6 +7,8 @@ import { initPointer } from './input.js';
 import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
 import { unlockAudio } from './audio.js';
+import { getSavedLevel, levelManager, resetProgress } from './levelManager.js';
+import textureUrl from './assets/textures.png';
 
 window.addEventListener('pointerdown', unlockAudio, { once: true });
 window.addEventListener('keydown', unlockAudio, { once: true });
@@ -14,17 +16,71 @@ window.addEventListener('touchstart', unlockAudio, { once: true });
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');
-canvas.width = window.innerHeight * (16 / 9); // 16:9 aspect ratio
-canvas.height = window.innerHeight;
 app.appendChild(canvas);
-canvas.style.display = 'block';
-canvas.style.margin = '0 auto';
 
-const aspectRatio = canvas.width / canvas.height;
+const renderer = new Renderer(canvas, camera, 16 / 9);
+addGameObject(player);
+
+function resizeCanvas() {
+  const targetAspect = 16 / 9;
+  const winW = window.innerWidth;
+  const winH = window.innerHeight;
+  let w, h;
+  if (winW / winH > targetAspect) {
+    h = winH;
+    w = Math.floor(winH * targetAspect);
+  } else {
+    w = winW;
+    h = Math.floor(winW / targetAspect);
+  }
+  canvas.width = w;
+  canvas.height = h;
+  renderer.resize(w, h);
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 initPointer(canvas);
 
-const renderer = new Renderer(canvas, camera, aspectRatio);
-addGameObject(player);
+// Title Screen & Save progress setup
+let isGameStarted = false;
+const titleScreen = document.getElementById('title-screen');
+const logoCvs = document.getElementById('logo');
+const btnGroup = document.getElementById('btn-group');
+const startBtn = document.getElementById('start-btn');
+
+if (logoCvs) {
+  const ctx = logoCvs.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, 32, 16, 32, 16, 0, 0, logoCvs.width, logoCvs.height);
+  };
+  img.src = textureUrl;
+}
+
+const savedLvl = getSavedLevel();
+if (savedLvl > 0 && btnGroup && startBtn) {
+  startBtn.textContent = `▶ CONTINUE (LEVEL ${savedLvl})`;
+  const newGameBtn = document.createElement('button');
+  newGameBtn.className = 'btn btn-sub';
+  newGameBtn.textContent = '🔄 NEW GAME';
+  newGameBtn.onclick = () => {
+    resetProgress();
+    startGame(0);
+  };
+  btnGroup.appendChild(newGameBtn);
+  startBtn.onclick = () => startGame(savedLvl);
+} else if (startBtn) {
+  startBtn.onclick = () => startGame(0);
+}
+
+function startGame(lvlIndex = 0) {
+  unlockAudio();
+  isGameStarted = true;
+  if (titleScreen) titleScreen.style.display = 'none';
+  levelManager.loadLevel(lvlIndex);
+}
 
 let lastTime = 0;
 let devUpdate = null;
@@ -32,21 +88,22 @@ let devRender = null;
 
 function gameLoop(time) {
   let dt = (time - lastTime) / 1000;
-  dt = Math.min(dt, 1 / 30); // aldrig hoppa mer än vad 30fps skulle motsvara
+  dt = Math.min(dt, 1 / 30);
   lastTime = time;
 
-  update(dt);
-  if (devUpdate) {
-    devUpdate(dt);
+  if (isGameStarted) {
+    update(dt);
+  } else {
+    camera.yaw += dt * 0.25;
+    camera.followTarget(player);
   }
+
+  if (devUpdate) devUpdate(dt);
 
   render(renderer);
-  if (devRender) {
-    devRender(renderer);
-  }
+  if (devRender) devRender(renderer);
 
   renderer.draw();
-
   requestAnimationFrame(gameLoop);
 }
 

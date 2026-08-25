@@ -26,6 +26,29 @@ export function getLevel(index) {
     return l;
 }
 
+const SAVE_KEY = 'ac_lvl';
+
+export function getSavedLevel() {
+    try {
+        const val = localStorage.getItem(SAVE_KEY);
+        return val !== null ? parseInt(val, 10) || 0 : 0;
+    } catch {
+        return 0;
+    }
+}
+
+export function saveProgress(idx) {
+    try {
+        localStorage.setItem(SAVE_KEY, idx.toString());
+    } catch {}
+}
+
+export function resetProgress() {
+    try {
+        localStorage.removeItem(SAVE_KEY);
+    } catch {}
+}
+
 export class LevelManager {
     constructor() {
         this.currentLevelIndex = 0;
@@ -51,6 +74,7 @@ export class LevelManager {
         }
 
         this.currentLevelIndex = index;
+        saveProgress(index);
         this.isVictory = false;
         const level = getLevel(index);
 

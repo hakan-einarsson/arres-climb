@@ -2,7 +2,7 @@ import { gameObjects } from './gameObjects.js';
 import Tile from './tile.js';
 import MovingBlock from './movingBlock.js';
 import { TILE_SIZE } from './tile.js';
-import { playJump, playLand, playRainbowBounce } from './audio.js';
+import { playJump, playRainbowBounce } from './audio.js';
 
 const GRAVITY = -9.8;
 
@@ -69,10 +69,6 @@ function moveAxis(entity, axis, delta) {
                     entity.groundPlatform = null;
                     playRainbowBounce();
                     return;
-                }
-
-                if (!entity.grounded && entity.vy < -2.0) {
-                    playLand();
                 }
 
                 entity.grounded = true;

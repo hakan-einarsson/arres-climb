@@ -12,6 +12,7 @@ class Renderer {
         const vs = this.createShader(gl.VERTEX_SHADER, vertexShaderSource);
         const fs = this.createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
         const program = gl.createProgram();
+        this.program = program;
         gl.attachShader(program, vs);
         gl.attachShader(program, fs);
         gl.linkProgram(program);
@@ -67,6 +68,12 @@ class Renderer {
         };
         img.src = url;
         return tex;
+    }
+
+    resize(w, h) {
+        this.aspectRatio = w / h;
+        this.gl.viewport(0, 0, w, h);
+        this.gl.uniform1f(this.gl.getUniformLocation(this.program, 'u_aspectRatio'), this.aspectRatio);
     }
 
     addObjectToRender(vertices) {

@@ -129,7 +129,6 @@ export function getIsMuted() {
 // ---------------------------------------------------------------------------
 const SFX = {
     jump: [0.9, 0.05, 340, 0.01, 0.06, 0.12, 0, 1.8, 8.5, 0, 0, 0, 0, 0, 0, 0, 0, 0.7, 0.04],
-    land: [0.45, 0.05, 110, 0.005, 0.02, 0.06, 0, 0, -3.5, 0, 0, 0, 0, 0.6, 0, 0.1, 0, 0.7, 0.02],
     rainbow: [1.3, 0.05, 480, 0.02, 0.22, 0.35, 1, 2.2, 12, 1, 240, 0.07, 0.05, 0, 0.2, 0, 0.06, 0.6, 0.06],
     rotate: [0.35, 0.02, 580, 0.005, 0.015, 0.03, 1, 0.5, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0.8, 0.01],
     coin: [1.1, 0, 880, 0.01, 0.12, 0.25, 0, 0, 0, 0, 440, 0.05, 0, 0, 0, 0, 0.05, 0.8, 0.04],
@@ -146,7 +145,6 @@ function playSfx(p) {
 }
 
 export const playJump = () => playSfx(SFX.jump);
-export const playLand = () => playSfx(SFX.land);
 export const playRainbowBounce = () => playSfx(SFX.rainbow);
 export const playCameraRotate = () => playSfx(SFX.rotate);
 export const playCoin = () => playSfx(SFX.coin);
