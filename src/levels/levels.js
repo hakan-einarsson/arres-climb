@@ -209,6 +209,13 @@ export const LEVELS = [
                 "action": "add",
                 "type": "MOVING_X",
                 "dist": 3
+            },
+            {
+                "x": 2,
+                "y": 0,
+                "z": 1,
+                "action": "add",
+                "type": "RAINBOW"
             }
         ]
     },

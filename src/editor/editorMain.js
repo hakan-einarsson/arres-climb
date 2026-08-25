@@ -193,13 +193,15 @@ window.addEventListener('keydown', (e) => {
     } else if (key === '3') {
         ui.setSelectedTool('SNOW');
     } else if (key === '4') {
+        ui.setSelectedTool('CLOUD');
+    } else if (key === '5') {
         ui.setSelectedTool('RAINBOW');
-    } else if (key === '5' || key === 'x' || e.code === 'Delete' || e.code === 'Backspace') {
-        ui.setSelectedTool('ERASER');
     } else if (key === '6') {
         ui.setSelectedTool('MOVING_X');
     } else if (key === '7') {
         ui.setSelectedTool('MOVING_Z');
+    } else if (key === 'x' || e.code === 'Delete' || e.code === 'Backspace') {
+        ui.setSelectedTool('ERASER');
     } else if (key === 's') {
         ui.setSelectedTool('SPAWN');
     } else if (key === 'g') {

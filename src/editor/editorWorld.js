@@ -54,7 +54,7 @@ export class EditorWorld {
         if (h <= this.heightTypeMap.grassMax) return 'GRASS';
         if (h <= this.heightTypeMap.rockMax) return 'ROCK';
         if (h <= this.heightTypeMap.snowMax) return 'SNOW';
-        return 'RAINBOW';
+        return 'CLOUD';
     }
 
     regenerate(keepMods = true) {

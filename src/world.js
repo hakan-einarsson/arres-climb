@@ -55,6 +55,23 @@ class World {
                     if (mIdx !== -1) this.movingBlocks.splice(mIdx, 1);
                 }
             } else if (action === 'add') {
+                // Ta först bort eventuellt existerande block på samma position så det inte dubbleras/döljs
+                const oldIndex = gameObjects.findIndex(
+                    obj => (obj instanceof Tile || obj instanceof MovingBlock) &&
+                           obj.gridX === x && obj.gridY === y && obj.gridZ === z
+                );
+                if (oldIndex !== -1) {
+                    const oldObj = gameObjects[oldIndex];
+                    removeGameObject(oldObj);
+                    const col = this.loadedColumns.get(colKey);
+                    if (col) {
+                        const idx = col.indexOf(oldObj);
+                        if (idx !== -1) col.splice(idx, 1);
+                    }
+                    const mIdx = this.movingBlocks.indexOf(oldObj);
+                    if (mIdx !== -1) this.movingBlocks.splice(mIdx, 1);
+                }
+
                 if (type === 'MOVING_X' || type === 'MOVING_Z' || type === 'MOVING') {
                     const axis = type === 'MOVING_Z' ? 'z' : 'x';
                     const maxDist = dist !== undefined ? dist : 3;
@@ -107,7 +124,7 @@ class World {
         if (h <= this.heightTypeMap.grassMax) return 'GRASS';
         if (h <= this.heightTypeMap.rockMax) return 'ROCK';
         if (h <= this.heightTypeMap.snowMax) return 'SNOW';
-        return 'RAINBOW';
+        return 'CLOUD';
     }
 
     loadColumn(x, z, y = null) {

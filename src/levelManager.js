@@ -8,12 +8,14 @@ export class LevelManager {
     constructor() {
         this.currentLevelIndex = 0;
         this.isVictory = false;
-        this.bannerElement = document.getElementById('b');
+        this.bannerElement = typeof document !== 'undefined' ? document.getElementById('b') : null;
         this.bannerTimer = 0;
     }
 
     showBanner(text, duration = 3.5) {
-        if (!this.bannerElement) this.bannerElement = document.getElementById('b');
+        if (!this.bannerElement && typeof document !== 'undefined') {
+            this.bannerElement = document.getElementById('b');
+        }
         if (this.bannerElement) {
             this.bannerElement.innerHTML = text;
             this.bannerElement.style.opacity = '1';

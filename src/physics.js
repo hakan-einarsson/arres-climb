@@ -57,7 +57,18 @@ function moveAxis(entity, axis, delta) {
 
     for (const solid of nearby) {
         if (boxesOverlap(testPos.x, testCenterY, testPos.z, size, solid.center.x, solid.center.y, solid.center.z, tileSize)) {
-            if (axis === 'y' && entity.vy < 0) {
+            if (axis === 'y' && entity.vy <= 0) {
+                // Katapult-block: Slungar spelaren högt upp i luften vid beröring
+                if (solid.obj.type === 'RAINBOW') {
+                    entity.y = solid.center.y + TILE_SIZE / 2 + 0.02;
+                    entity.vy = 8.5;
+                    entity.grounded = false;
+                    entity.coyoteTimer = 0;
+                    entity.jumpBufferTimer = 0;
+                    entity.groundPlatform = null;
+                    return;
+                }
+
                 entity.grounded = true;
                 if (solid.obj instanceof MovingBlock) {
                     entity.groundPlatform = solid.obj;
