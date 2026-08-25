@@ -3,7 +3,7 @@ import { world } from './world.js';
 import { player } from './player.js';
 import { coin } from './coin.js';
 import { camera } from './camera.js';
-import { playCoin, playLevelComplete, playVictory, playFall } from './audio.js';
+import { playLevelComplete, playVictory, playFall } from './audio.js';
 
 export function getLevel(index) {
     const l = LEVELS[index];
@@ -39,13 +39,13 @@ export function getSavedLevel() {
 export function saveProgress(idx) {
     try {
         localStorage.setItem(SAVE_KEY, idx.toString());
-    } catch {}
+    } catch { }
 }
 
 export function resetProgress() {
     try {
         localStorage.removeItem(SAVE_KEY);
-    } catch {}
+    } catch { }
 }
 
 export class LevelManager {
@@ -127,7 +127,6 @@ export class LevelManager {
 
         if (coin.checkCollision(player)) {
             coin.active = false;
-            playCoin();
             this.nextLevel();
         }
 

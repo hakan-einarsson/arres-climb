@@ -18,7 +18,7 @@ export function getAudioContext() {
 export const zzfx = (...p) => {
     const ctx = getAudioContext();
     const R = 44100;
-    let [v=1, r=.05, f=220, a=0, s=0, d=.1, sh=0, sc=1, sl=0, ds=0, pj=0, pt=0, rt=0, n=0, m=0, bc=0, dl=0, sv=1, dc=0, tr=0, fl=0] = p;
+    let [v = 1, r = .05, f = 220, a = 0, s = 0, d = .1, sh = 0, sc = 1, sl = 0, ds = 0, pj = 0, pt = 0, rt = 0, n = 0, m = 0, bc = 0, dl = 0, sv = 1, dc = 0, tr = 0, fl = 0] = p;
     let PI2 = Math.PI * 2, abs = Math.abs, sign = x => x < 0 ? -1 : 1;
     let startSlide = sl *= 500 * PI2 / R / R;
     let startFreq = f *= (1 + r * 2 * Math.random() - r) * PI2 / R;
@@ -50,9 +50,9 @@ export const zzfx = (...p) => {
             S = (rt ? 1 - tr + tr * Math.sin(PI2 * i / rt) : 1) *
                 (sh > 4 ? S : sign(S) * abs(S) ** sc) *
                 (i < a ? i / a :
-                 i < a + dc ? 1 - ((i - a) / dc) * (1 - sv) :
-                 i < a + dc + s ? sv :
-                 i < len - dl ? (len - i - dl) / d * sv : 0);
+                    i < a + dc ? 1 - ((i - a) / dc) * (1 - sv) :
+                        i < a + dc + s ? sv :
+                            i < len - dl ? (len - i - dl) / d * sv : 0);
 
             S = dl ? S / 2 + (dl > i ? 0 : (i < len - dl ? 1 : (len - i) / dl) * b[i - dl | 0] / 2 / v) : S;
             if (fl) S = y1 = b2 * x2 + b1 * (x2 = x1) + b0 * (x1 = S) - a2 * y2 - a1 * (y2 = y1);
@@ -131,7 +131,6 @@ const SFX = {
     jump: [0.9, 0.05, 340, 0.01, 0.06, 0.12, 0, 1.8, 8.5, 0, 0, 0, 0, 0, 0, 0, 0, 0.7, 0.04],
     rainbow: [1.3, 0.05, 480, 0.02, 0.22, 0.35, 1, 2.2, 12, 1, 240, 0.07, 0.05, 0, 0.2, 0, 0.06, 0.6, 0.06],
     rotate: [0.35, 0.02, 580, 0.005, 0.015, 0.03, 1, 0.5, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0.8, 0.01],
-    coin: [1.1, 0, 880, 0.01, 0.12, 0.25, 0, 0, 0, 0, 440, 0.05, 0, 0, 0, 0, 0.05, 0.8, 0.04],
     fall: [0.8, 0.05, 260, 0.01, 0.15, 0.45, 0, 0, -11, -2, 0, 0, 0, 0.3, 0, 0.15, 0, 0.6, 0.1],
     levelComplete: [1.2, 0, 523.25, 0.02, 0.2, 0.4, 0, 1.2, 4, 0, 261.6, 0.08, 0.06, 0, 0, 0, 0.1, 0.7, 0.06]
 };
@@ -141,13 +140,12 @@ function playSfx(p) {
     try {
         unlockAudio();
         zzfx(...p);
-    } catch {}
+    } catch { }
 }
 
 export const playJump = () => playSfx(SFX.jump);
 export const playRainbowBounce = () => playSfx(SFX.rainbow);
 export const playCameraRotate = () => playSfx(SFX.rotate);
-export const playCoin = () => playSfx(SFX.coin);
 export const playFall = () => playSfx(SFX.fall);
 export const playLevelComplete = () => playSfx(SFX.levelComplete);
 
@@ -168,12 +166,12 @@ const midiFreq = m => m ? 440 * (2 ** ((m - 69) / 12)) : 0;
 
 // Procedural Arpeggios & Bassline from 8 Chord Roots
 const CHORD_ROOTS = [60, 64, 65, 67, 69, 64, 65, 67];
-const ARP_PAT = [0,4,7,11, 12,11,7,4, 0,4,7,11, 12,16,19,16];
+const ARP_PAT = [0, 4, 7, 11, 12, 11, 7, 4, 0, 4, 7, 11, 12, 16, 19, 16];
 const ARP_LINE = [];
 CHORD_ROOTS.forEach((root, i) => {
     const isMin = (i === 1 || i === 4 || i === 5);
-    const pat = isMin ? [0,3,7,10, 12,10,7,3, 0,3,7,10, 12,15,19,15] :
-               (i === 7) ? [0,5,7,12, 0,5,7,12, 0,4,7,12, 16,19,24,19] : ARP_PAT;
+    const pat = isMin ? [0, 3, 7, 10, 12, 10, 7, 3, 0, 3, 7, 10, 12, 15, 19, 15] :
+        (i === 7) ? [0, 5, 7, 12, 0, 5, 7, 12, 0, 4, 7, 12, 16, 19, 24, 19] : ARP_PAT;
     for (let s = 0; s < 16; s++) ARP_LINE.push(root + pat[s]);
 });
 
@@ -181,26 +179,26 @@ const BASS_ROOTS = [36, 40, 41, 43, 45, 40, 41, 43];
 const BASS_LINE = [];
 BASS_ROOTS.forEach((root, i) => {
     const third = (i === 1 || i === 4 || i === 5) ? 3 : 4;
-    const tail = (i === 7) ? [root,0,root,root+2, root+4,root+5,root+7,0] :
-                 (i === 3) ? [root,0,root-2,0, root-3,0,root-5,0] :
-                             [root,0,root,0, root+third,0,root+7,0];
-    BASS_LINE.push(root,0,root,0, root+7,0,root+12,0, ...tail);
+    const tail = (i === 7) ? [root, 0, root, root + 2, root + 4, root + 5, root + 7, 0] :
+        (i === 3) ? [root, 0, root - 2, 0, root - 3, 0, root - 5, 0] :
+            [root, 0, root, 0, root + third, 0, root + 7, 0];
+    BASS_LINE.push(root, 0, root, 0, root + 7, 0, root + 12, 0, ...tail);
 });
 
 const LEAD_NOTES = [
-    0,76, 4,79, 8,84, 10,83, 12,79, 14,76,
-    16,79, 20,76, 22,74, 24,76,
-    32,81, 36,84, 40,88, 42,86, 44,84, 46,81,
-    48,83, 52,79, 54,81, 56,83, 62,86,
-    64,84, 68,88, 72,93, 74,91, 76,88, 78,86,
-    80,88, 84,83, 86,79, 88,76,
-    96,77, 98,81, 100,84, 102,88, 104,86, 106,84, 108,81, 110,79,
-    112,79, 114,81, 116,83, 118,86, 120,84
+    0, 76, 4, 79, 8, 84, 10, 83, 12, 79, 14, 76,
+    16, 79, 20, 76, 22, 74, 24, 76,
+    32, 81, 36, 84, 40, 88, 42, 86, 44, 84, 46, 81,
+    48, 83, 52, 79, 54, 81, 56, 83, 62, 86,
+    64, 84, 68, 88, 72, 93, 74, 91, 76, 88, 78, 86,
+    80, 88, 84, 83, 86, 79, 88, 76,
+    96, 77, 98, 81, 100, 84, 102, 88, 104, 86, 106, 84, 108, 81, 110, 79,
+    112, 79, 114, 81, 116, 83, 118, 86, 120, 84
 ];
 const LEAD_LINE = new Uint8Array(128);
 for (let i = 0; i < LEAD_NOTES.length; i += 2) LEAD_LINE[LEAD_NOTES[i]] = LEAD_NOTES[i + 1];
 
-const BASE_DRUM = [1,3,3,3, 2,3,3,3, 1,3,1,3, 2,3,3,4];
+const BASE_DRUM = [1, 3, 3, 3, 2, 3, 3, 3, 1, 3, 1, 3, 2, 3, 3, 4];
 const DRUM_PATTERN = [];
 for (let b = 0; b < 8; b++) {
     const d = [...BASE_DRUM];
