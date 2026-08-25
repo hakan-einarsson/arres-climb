@@ -26,16 +26,16 @@ export function createBlock(x, y, z, type = 1, isWorld = false) {
     const { u0: gu0, v0: gv0, u1: gu1, v1: gv1 } = getUV(tC, 0);
     const { u0: du0, v0: dv0, u1: du1, v1: dv1 } = getUV(bC, 0);
 
-    const h = Math.min(1.0, 0.82 + (y0 / 7.0) * 0.18);
-    const lTop = 1.05 * h, lBtm = 0.45 * h, lFrnt = 0.86 * h, lBck = 0.60 * h, lLeft = 0.68 * h, lRgt = 0.80 * h;
+    const h = Math.min(1.0, 0.82 + (y0 / 4) * 0.18); // 4 is just winged, should be set out of the levels maxHeight...
+    const lTop = 1.1, lFrnt = 0.95, lRgt = 0.7, lLeft = 0.55, lBck = 0.35, lBtm = 0.2;
 
     return [
-        [x0,y1,z0,gu0,gv0,lTop],[x1,y1,z0,gu1,gv0,lTop],[x1,y1,z1,gu1,gv1,lTop], [x0,y1,z0,gu0,gv0,lTop],[x1,y1,z1,gu1,gv1,lTop],[x0,y1,z1,gu0,gv1,lTop],
-        [x0,y0,z1,du0,dv1,lBtm],[x1,y0,z1,du1,dv1,lBtm],[x1,y0,z0,du1,dv0,lBtm], [x0,y0,z1,du0,dv1,lBtm],[x1,y0,z0,du1,dv0,lBtm],[x0,y0,z0,du0,dv0,lBtm],
-        [x0,y0,z0,du0,dv1,lFrnt],[x1,y0,z0,du1,dv1,lFrnt],[x1,y1,z0,du1,dv0,lFrnt], [x0,y0,z0,du0,dv1,lFrnt],[x1,y1,z0,du1,dv0,lFrnt],[x0,y1,z0,du0,dv0,lFrnt],
-        [x1,y0,z1,du0,dv1,lBck],[x0,y0,z1,du1,dv1,lBck],[x0,y1,z1,du1,dv0,lBck], [x1,y0,z1,du0,dv1,lBck],[x0,y1,z1,du1,dv0,lBck],[x1,y1,z1,du0,dv0,lBck],
-        [x0,y0,z1,du0,dv1,lLeft],[x0,y0,z0,du1,dv1,lLeft],[x0,y1,z0,du1,dv0,lLeft], [x0,y0,z1,du0,dv1,lLeft],[x0,y1,z0,du1,dv0,lLeft],[x0,y1,z1,du0,dv0,lLeft],
-        [x1,y0,z0,du0,dv1,lRgt],[x1,y0,z1,du1,dv1,lRgt],[x1,y1,z1,du1,dv0,lRgt], [x1,y0,z0,du0,dv1,lRgt],[x1,y1,z1,du1,dv0,lRgt],[x1,y1,z0,du0,dv0,lRgt]
+        [x0, y1, z0, gu0, gv0, lTop], [x1, y1, z0, gu1, gv0, lTop], [x1, y1, z1, gu1, gv1, lTop], [x0, y1, z0, gu0, gv0, lTop], [x1, y1, z1, gu1, gv1, lTop], [x0, y1, z1, gu0, gv1, lTop],
+        [x0, y0, z1, du0, dv1, lBtm], [x1, y0, z1, du1, dv1, lBtm], [x1, y0, z0, du1, dv0, lBtm], [x0, y0, z1, du0, dv1, lBtm], [x1, y0, z0, du1, dv0, lBtm], [x0, y0, z0, du0, dv0, lBtm],
+        [x0, y0, z0, du0, dv1, lFrnt], [x1, y0, z0, du1, dv1, lFrnt], [x1, y1, z0, du1, dv0, lFrnt], [x0, y0, z0, du0, dv1, lFrnt], [x1, y1, z0, du1, dv0, lFrnt], [x0, y1, z0, du0, dv0, lFrnt],
+        [x1, y0, z1, du0, dv1, lBck], [x0, y0, z1, du1, dv1, lBck], [x0, y1, z1, du1, dv0, lBck], [x1, y0, z1, du0, dv1, lBck], [x0, y1, z1, du1, dv0, lBck], [x1, y1, z1, du0, dv0, lBck],
+        [x0, y0, z1, du0, dv1, lLeft], [x0, y0, z0, du1, dv1, lLeft], [x0, y1, z0, du1, dv0, lLeft], [x0, y0, z1, du0, dv1, lLeft], [x0, y1, z0, du1, dv0, lLeft], [x0, y1, z1, du0, dv0, lLeft],
+        [x1, y0, z0, du0, dv1, lRgt], [x1, y0, z1, du1, dv1, lRgt], [x1, y1, z1, du1, dv0, lRgt], [x1, y0, z0, du0, dv1, lRgt], [x1, y1, z1, du1, dv0, lRgt], [x1, y1, z0, du0, dv0, lRgt]
     ];
 }
 

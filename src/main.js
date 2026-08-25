@@ -46,6 +46,7 @@ initPointer(canvas);
 let isGameStarted = false;
 const titleScreen = document.getElementById('ts');
 const logoCvs = document.getElementById('logo');
+logoCvs.style.imageRendering = 'pixelated';
 const btnGroup = document.getElementById('bg');
 const startBtn = document.getElementById('sb');
 
