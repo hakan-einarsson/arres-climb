@@ -15,6 +15,7 @@ export function getUV(col, row) {
 
 export const uvMap = {
     1: [1, 0], 2: [3, 2], 3: [5, 4], 4: [7, 6], 5: [8, 8], 6: [8, 8],
+    G: [1, 0], R: [3, 2], S: [5, 4], RB: [7, 6], MX: [8, 8], MZ: [8, 8],
     GRASS: [1, 0], ROCK: [3, 2], SNOW: [5, 4], CLOUD: [9, 9],
     POINTER: [9, 8], RAINBOW: [7, 6], MOVING: [8, 8], MOVING_X: [8, 8], MOVING_Z: [8, 8]
 };

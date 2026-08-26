@@ -65,8 +65,8 @@ class World {
 
             if (action === 'add') {
                 const colKey = `${x},${z}`;
-                if (type === 5 || type === 6 || type === 'MOVING_X' || type === 'MOVING_Z' || type === 'MOVING') {
-                    const mb = new MovingBlock(x, y, z, (type === 6 || type === 'MOVING_Z') ? 'z' : 'x', dist !== undefined ? dist : 3);
+                if (type === 5 || type === 6 || type === 'MOVING_X' || type === 'MOVING_Z' || type === 'MOVING' || type === 'MX' || type === 'MZ') {
+                    const mb = new MovingBlock(x, y, z, (type === 6 || type === 'MOVING_Z' || type === 'MZ') ? 'z' : 'x', dist !== undefined ? dist : 3);
                     addGameObject(mb);
                     this.movingBlocks.push(mb);
                 } else {
@@ -107,7 +107,7 @@ class World {
         if (h <= this.heightTypeMap.grassMax) return 1;
         if (h <= this.heightTypeMap.rockMax) return 2;
         if (h <= this.heightTypeMap.snowMax) return 3;
-        return 1;
+        return 3;
     }
 
     loadColumn(x, z, y = null) {

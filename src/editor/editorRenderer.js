@@ -163,18 +163,11 @@ export class EditorRenderer {
         gl.attachShader(this.program, fs);
         gl.linkProgram(this.program);
 
-        gl.useProgram(this.program);
+        this.vao = gl.createVertexArray();
+        gl.bindVertexArray(this.vao);
 
         this.positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.enable(gl.DEPTH_TEST);
-
-        this.texture = this.loadTexture(textureUrl);
-
-        const uTextureLoc = gl.getUniformLocation(this.program, 'u_texture');
-        gl.uniform1i(uTextureLoc, 0);
 
         const posLoc = gl.getAttribLocation(this.program, 'a_position');
         gl.enableVertexAttribArray(posLoc);
@@ -183,6 +176,14 @@ export class EditorRenderer {
         const uvLoc = gl.getAttribLocation(this.program, 'a_texcoord');
         gl.enableVertexAttribArray(uvLoc);
         gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
+
+        gl.bindVertexArray(null);
+
+        this.texture = this.loadTexture(textureUrl);
+
+        gl.useProgram(this.program);
+        const uTextureLoc = gl.getUniformLocation(this.program, 'u_texture');
+        gl.uniform1i(uTextureLoc, 0);
 
         this.uFocalLengthLoc = gl.getUniformLocation(this.program, 'u_focalLength');
         this.uAspectRatioLoc = gl.getUniformLocation(this.program, 'u_aspectRatio');
@@ -249,6 +250,11 @@ export class EditorRenderer {
     render(editorWorld, hoveredCell, selectedTool) {
         this.resize();
         const gl = this.gl;
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthMask(true);
 
         gl.clearColor(0.08, 0.1, 0.14, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -416,10 +422,12 @@ export class EditorRenderer {
 
     drawVertices(verts) {
         const gl = this.gl;
+        gl.bindVertexArray(this.vao);
         const array = new Float32Array(verts);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, array, gl.DYNAMIC_DRAW);
         gl.drawArrays(gl.TRIANGLES, 0, verts.length / 5);
+        gl.bindVertexArray(null);
     }
 }
 

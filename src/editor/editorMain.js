@@ -1,5 +1,6 @@
 import { editorCamera } from './editorCamera.js';
 import { editorWorld } from './editorWorld.js';
+import { editorPlaytest } from './editorPlaytest.js';
 import EditorRenderer from './editorRenderer.js';
 import EditorUI from './editorUI.js';
 import { TILE_SIZE } from '../tile.js';
@@ -18,6 +19,11 @@ let lastMouseX = 0;
 let lastMouseY = 0;
 
 function updateHoveredCell(clientX, clientY) {
+    if (ui.isPlaytesting) {
+        hoveredCell = null;
+        return;
+    }
+
     const rect = canvas.getBoundingClientRect();
     const mouseX = clientX - rect.left;
     const mouseY = clientY - rect.top;
@@ -84,20 +90,16 @@ function updateHoveredCell(clientX, clientY) {
 }
 
 function applyActionAtHovered(button) {
-    if (!hoveredCell || editorCamera.mode !== 'edit') return;
+    if (!hoveredCell || editorCamera.mode !== 'edit' || ui.isPlaytesting) return;
     const { x, y, z } = hoveredCell;
 
     if (button === 2 || ui.selectedTool === 'ERASER') {
-        // Erase block
         editorWorld.removeBlock(x, y, z);
     } else if (ui.selectedTool === 'SPAWN') {
-        // Set spawn
         editorWorld.setSpawn(x, y, z);
     } else if (ui.selectedTool === 'GOAL') {
-        // Set goal
         editorWorld.setGoal(x, y, z);
     } else {
-        // Place selected block
         const dist = ui.movingDistance;
         editorWorld.addBlock(x, y, z, ui.selectedTool, dist);
     }
@@ -108,6 +110,8 @@ function applyActionAtHovered(button) {
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
 canvas.addEventListener('mousedown', (e) => {
+    if (ui.isPlaytesting) return;
+
     isMouseDown = true;
     mouseButton = e.button;
     lastMouseX = e.clientX;
@@ -116,20 +120,16 @@ canvas.addEventListener('mousedown', (e) => {
     updateHoveredCell(e.clientX, e.clientY);
 
     if (editorCamera.mode === 'edit') {
-        // In edit mode: middle click or shift+drag pans camera
         if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
             isPanning = true;
         } else if (e.button === 0) {
-            // Left click: place or erase (if eraser selected)
             isPainting = true;
             applyActionAtHovered(0);
         } else if (e.button === 2) {
-            // Right click: erase
             isErasing = true;
             applyActionAtHovered(2);
         }
     } else {
-        // In 3D inspect mode:
         if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
             isPanning = true;
         }
@@ -137,6 +137,8 @@ canvas.addEventListener('mousedown', (e) => {
 });
 
 window.addEventListener('mousemove', (e) => {
+    if (ui.isPlaytesting) return;
+
     updateHoveredCell(e.clientX, e.clientY);
 
     if (!isMouseDown) return;
@@ -170,15 +172,39 @@ window.addEventListener('mouseup', () => {
 });
 
 canvas.addEventListener('wheel', (e) => {
+    if (ui.isPlaytesting) return;
     e.preventDefault();
     editorCamera.zoom(e.deltaY);
 }, { passive: false });
 
 // Keyboard shortcuts
 window.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
     const key = e.key.toLowerCase();
+
+    // Quick Save shortcut (Ctrl+S / Cmd+S)
+    if ((e.ctrlKey || e.metaKey) && key === 's') {
+        e.preventDefault();
+        ui.saveAllLevelsToFile();
+        return;
+    }
+
+    // Toggle Playtest with P
+    if (key === 'p' && !e.ctrlKey && !e.metaKey && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        if (ui.isPlaytesting) {
+            ui.stopPlaytest();
+        } else {
+            ui.startPlaytest();
+        }
+        return;
+    }
+
+    if (key === 'escape' && ui.isPlaytesting) {
+        ui.stopPlaytest();
+        return;
+    }
+
+    if (ui.isPlaytesting) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
     if (key === 'f') {
         ui.toggleMode();
@@ -208,19 +234,31 @@ window.addEventListener('keydown', (e) => {
         ui.setSelectedTool('GOAL');
     } else if (key === 'r') {
         editorWorld.regenerate(true);
-    } else if (key === 'o' || key === 'p') {
+    } else if (key === 'o') {
         const json = editorWorld.exportJSON();
         ui.jsonTextarea.value = json;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(json);
+            ui.showStatus('📋 Level JSON copied to clipboard!');
         }
     }
 });
 
 // Render loop
-function loop() {
-    renderer.render(editorWorld, hoveredCell, ui.selectedTool);
-    ui.updateOverlay(hoveredCell);
+let lastTime = performance.now();
+
+function loop(currentTime) {
+    const dt = Math.min((currentTime - lastTime) / 1000, 1 / 30);
+    lastTime = currentTime;
+
+    if (ui.isPlaytesting) {
+        editorPlaytest.update(dt);
+        editorPlaytest.render();
+    } else {
+        renderer.render(editorWorld, hoveredCell, ui.selectedTool);
+        ui.updateOverlay(hoveredCell);
+    }
+
     requestAnimationFrame(loop);
 }
 

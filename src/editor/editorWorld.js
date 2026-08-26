@@ -29,6 +29,25 @@ export class EditorWorld {
         this.regenerate(false);
     }
 
+    resetToDefault() {
+        this.seed = 2;
+        this.chunkRadius = 6;
+        this.maxHeight = 12;
+        this.islandFactor = 3.0;
+        this.scale = 0.45;
+        this.threshold = 0.22;
+        this.heightTypeMap = {
+            grassMax: 3,
+            rockMax: 7,
+            snowMax: 12,
+        };
+        this.spawn = null;
+        this.goal = null;
+        this.activeLayer = 0;
+        this.modifications = [];
+        this.regenerate(false);
+    }
+
     setSeed(seed) {
         this.seed = seed;
         this.perm = generatePermTable(this.seed);
