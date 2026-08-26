@@ -12,6 +12,17 @@ const MIN_DISTANCE = 1.5;
 const MAX_DISTANCE = 8;
 const CAMERA_ZOOM_SPEED = 5;
 
+function updateMuteState() {
+    const muted = toggleMute();
+    levelManager.showBanner(muted ? 'Muted' : 'Sound On', 1.2);
+    const bm = document.getElementById('bm');
+    if (bm) {
+        bm.style.opacity = muted ? '0.4' : '1.0';
+        bm.style.textDecoration = muted ? 'line-through' : 'none';
+        bm.style.borderColor = muted ? '#8b949e' : '#58a6ff';
+    }
+}
+
 window.addEventListener('keydown', (e) => {
     unlockAudio();
     if (e.repeat) return;
@@ -22,8 +33,7 @@ window.addEventListener('keydown', (e) => {
     }
 
     if (e.key === 'm' || e.key === 'M') {
-        const muted = toggleMute();
-        levelManager.showBanner(muted ? 'Muted' : 'Sound On', 1.2);
+        updateMuteState();
     }
 });
 
@@ -55,7 +65,8 @@ export function initTouchControls() {
 
     let touchId = null;
     let centerX = 0, centerY = 0;
-    const maxRadius = 38;
+    const maxRadius = 44;
+    const deadzone = 18;
 
     const handleTouch = (e) => {
         for (let i = 0; i < e.changedTouches.length; i++) {
@@ -71,9 +82,10 @@ export function initTouchControls() {
                     stick.style.transform = `translate(${Math.cos(angle) * clamped}px, ${Math.sin(angle) * clamped}px)`;
                 }
 
-                if (dist > 6) {
-                    touchMoveX = dx / Math.max(dist, maxRadius);
-                    touchMoveZ = -dy / Math.max(dist, maxRadius);
+                if (dist > deadzone) {
+                    const norm = (dist - deadzone) / (maxRadius - deadzone);
+                    touchMoveX = (dx / dist) * norm;
+                    touchMoveZ = (-dy / dist) * norm;
                 } else {
                     touchMoveX = 0;
                     touchMoveZ = 0;
@@ -122,6 +134,7 @@ export function initTouchControls() {
         if (onEnd) btn.addEventListener('touchend', onEnd);
     };
 
+    bindBtn('bm', updateMuteState);
     bindBtn('bj', () => player.jumpBufferTimer = 0.12, () => {
         if (player.isJumping && player.vy > 0) {
             player.vy *= JUMP_CUTOFF_FACTOR;
