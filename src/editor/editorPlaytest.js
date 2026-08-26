@@ -243,8 +243,9 @@ export class EditorPlaytest {
         const key = e.key.toLowerCase();
         this.keys[key] = false;
 
-        if (e.code === 'Space' && player.vy > 0) {
+        if (e.code === 'Space' && player.isJumping && player.vy > 0) {
             player.vy *= 0.4;
+            player.isJumping = false;
         }
     }
 

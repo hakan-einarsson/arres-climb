@@ -38,43 +38,78 @@ function getNearbySolids(entity) {
     return solids;
 }
 
-function boxesOverlap(aX, aY, aZ, aSize, bX, bY, bZ, bSize) {
-    return Math.abs(aX - bX) < (aSize.x + bSize.x) / 2 &&
-        Math.abs(aY - bY) < (aSize.y + bSize.y) / 2 &&
-        Math.abs(aZ - bZ) < (aSize.z + bSize.z) / 2;
-}
-
-function moveAxis(entity, axis, delta) {
+export function moveAxis(entity, axis, delta) {
     if (delta === 0) return;
 
     const testPos = { x: entity.x, y: entity.y, z: entity.z };
     testPos[axis] += delta;
 
-    const size = { x: entity.width, y: entity.height, z: entity.depth };
-    const testCenterY = testPos.y + entity.height / 2;
     const nearby = getNearbySolids(entity);
-    const tileSize = { x: TILE_SIZE, y: TILE_SIZE, z: TILE_SIZE };
+    const halfTile = TILE_SIZE / 2;
+    const halfWidth = entity.width / 2;
+    const halfDepth = entity.depth / 2;
 
     for (const solid of nearby) {
-        if (boxesOverlap(testPos.x, testCenterY, testPos.z, size, solid.center.x, solid.center.y, solid.center.z, tileSize)) {
-            if (axis === 'y' && entity.vy <= 0) {
-                if (solid.obj.type === 4 || solid.obj.type === 'RAINBOW') {
-                    entity.y = solid.center.y + TILE_SIZE / 2 + 0.02;
-                    entity.vy = 8.5;
-                    entity.grounded = false;
-                    entity.coyoteTimer = 0;
-                    entity.jumpBufferTimer = 0;
-                    entity.groundPlatform = null;
-                    playRainbowBounce();
+        const sc = solid.center;
+
+        if (axis === 'y') {
+            const overlapX = Math.abs(testPos.x - sc.x) < (halfWidth + halfTile) - 0.005;
+            const overlapZ = Math.abs(testPos.z - sc.z) < (halfDepth + halfTile) - 0.005;
+
+            if (overlapX && overlapZ) {
+                if (delta < 0 && entity.y >= sc.y + halfTile - 0.05 && testPos.y <= sc.y + halfTile) {
+                    if (solid.obj.type === 4 || solid.obj.type === 'RAINBOW') {
+                        entity.y = sc.y + halfTile + 0.02;
+                        entity.vy = 8.5;
+                        entity.isJumping = false;
+                        entity.grounded = false;
+                        entity.coyoteTimer = 0;
+                        entity.jumpBufferTimer = 0;
+                        entity.groundPlatform = null;
+                        playRainbowBounce();
+                        return;
+                    }
+                    entity.y = sc.y + halfTile;
+                    entity.vy = 0;
+                    entity.grounded = true;
+                    entity.isJumping = false;
+                    if (solid.obj instanceof MovingBlock) {
+                        entity.groundPlatform = solid.obj;
+                    }
+                    return;
+                } else if (delta > 0 && entity.y + entity.height <= sc.y - halfTile + 0.05 && testPos.y + entity.height >= sc.y - halfTile) {
+                    entity.y = sc.y - halfTile - entity.height;
+                    entity.vy = 0;
+                    entity.isJumping = false;
                     return;
                 }
-                entity.grounded = true;
-                if (solid.obj instanceof MovingBlock) {
-                    entity.groundPlatform = solid.obj;
-                }
             }
-            entity['v' + axis] = 0;
-            return;
+        } else if (axis === 'x') {
+            const overlapY = entity.y < sc.y + halfTile - 0.005 && entity.y + entity.height > sc.y - halfTile + 0.005;
+            const overlapZ = Math.abs(testPos.z - sc.z) < (halfDepth + halfTile) - 0.005;
+
+            if (overlapY && overlapZ && Math.abs(testPos.x - sc.x) < (halfWidth + halfTile)) {
+                if (delta > 0) {
+                    entity.x = sc.x - halfTile - halfWidth;
+                } else {
+                    entity.x = sc.x + halfTile + halfWidth;
+                }
+                entity.vx = 0;
+                return;
+            }
+        } else if (axis === 'z') {
+            const overlapY = entity.y < sc.y + halfTile - 0.005 && entity.y + entity.height > sc.y - halfTile + 0.005;
+            const overlapX = Math.abs(testPos.x - sc.x) < (halfWidth + halfTile) - 0.005;
+
+            if (overlapY && overlapX && Math.abs(testPos.z - sc.z) < (halfDepth + halfTile)) {
+                if (delta > 0) {
+                    entity.z = sc.z - halfTile - halfDepth;
+                } else {
+                    entity.z = sc.z + halfTile + halfDepth;
+                }
+                entity.vz = 0;
+                return;
+            }
         }
     }
 
@@ -82,11 +117,6 @@ function moveAxis(entity, axis, delta) {
 }
 
 export function updatePhysics(entity, dt) {
-    if (entity.grounded && entity.groundPlatform) {
-        entity.x += entity.groundPlatform.vx * dt;
-        entity.z += entity.groundPlatform.vz * dt;
-    }
-
     entity.grounded = false;
     entity.groundPlatform = null;
 
@@ -108,6 +138,7 @@ export function updatePhysics(entity, dt) {
 
     if (entity.jumpBufferTimer > 0 && entity.coyoteTimer > 0) {
         entity.vy = entity.jumpForce;
+        entity.isJumping = true;
         entity.jumpBufferTimer = 0;
         entity.coyoteTimer = 0;
         entity.groundPlatform = null;

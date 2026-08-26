@@ -38,6 +38,7 @@ class Player {
         this.vx = 0; this.vy = 0; this.vz = 0;
         this.width = 0.2; this.height = 0.2; this.depth = 0.2;
         this.grounded = false;
+        this.isJumping = false;
         this.coyoteTimer = 0;
         this.jumpBufferTimer = 0;
         this.jumpForce = 3.3;
@@ -56,6 +57,7 @@ class Player {
         this.vy = 0;
         this.vz = 0;
         this.grounded = false;
+        this.isJumping = false;
         this.aimX = 0;
         this.aimZ = 1;
     }

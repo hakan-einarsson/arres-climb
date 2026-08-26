@@ -30,8 +30,9 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', (e) => {
     keys[e.key.toLowerCase()] = false;
 
-    if (e.code === 'Space' && player.vy > 0) {
+    if (e.code === 'Space' && player.isJumping && player.vy > 0) {
         player.vy *= JUMP_CUTOFF_FACTOR;
+        player.isJumping = false;
     }
 });
 
@@ -121,7 +122,12 @@ export function initTouchControls() {
         if (onEnd) btn.addEventListener('touchend', onEnd);
     };
 
-    bindBtn('bj', () => player.jumpBufferTimer = 0.12, () => { if (player.vy > 0) player.vy *= JUMP_CUTOFF_FACTOR; });
+    bindBtn('bj', () => player.jumpBufferTimer = 0.12, () => {
+        if (player.isJumping && player.vy > 0) {
+            player.vy *= JUMP_CUTOFF_FACTOR;
+            player.isJumping = false;
+        }
+    });
     bindBtn('brl', () => touchRotateL = true);
     bindBtn('brr', () => touchRotateR = true);
     bindBtn('bzi', () => touchZoomIn = true, () => touchZoomIn = false);
@@ -234,8 +240,9 @@ function getInputState() {
         if (gp.jumpJustPressed) {
             player.jumpBufferTimer = 0.12;
         }
-        if (gp.jumpJustReleased && player.vy > 0) {
+        if (gp.jumpJustReleased && player.isJumping && player.vy > 0) {
             player.vy *= JUMP_CUTOFF_FACTOR;
+            player.isJumping = false;
         }
         if (gp.zoomIn) zoomIn = true;
         if (gp.zoomOut) zoomOut = true;
