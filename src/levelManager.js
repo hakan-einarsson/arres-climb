@@ -11,31 +11,15 @@ export function getLevel(index) {
 
 const SAVE_KEY = 'ac_lvl';
 
-export function getSavedLevel() {
-    try {
-        const val = localStorage.getItem(SAVE_KEY);
-        return val !== null ? parseInt(val, 10) || 0 : 0;
-    } catch {
-        return 0;
-    }
-}
-
-export function saveProgress(idx) {
-    try {
-        localStorage.setItem(SAVE_KEY, idx.toString());
-    } catch { }
-}
-
-export function resetProgress() {
-    try {
-        localStorage.removeItem(SAVE_KEY);
-    } catch { }
-}
+export const getSavedLevel = () => { try { return +localStorage.getItem(SAVE_KEY) || 0; } catch { return 0; } };
+export const saveProgress = idx => { try { localStorage.setItem(SAVE_KEY, idx); } catch { } };
+export const resetProgress = () => { try { localStorage.removeItem(SAVE_KEY); } catch { } };
 
 export class LevelManager {
     constructor() {
         this.currentLevelIndex = 0;
         this.isVictory = false;
+        this.victoryTimer = 0;
         this.bannerElement = typeof document !== 'undefined' ? document.getElementById('b') : null;
         this.bannerTimer = 0;
     }
@@ -59,6 +43,7 @@ export class LevelManager {
         this.currentLevelIndex = index;
         saveProgress(index);
         this.isVictory = false;
+        this.victoryTimer = 0;
         const level = getLevel(index);
 
         world.clearWorld();
@@ -89,7 +74,8 @@ export class LevelManager {
             setTimeout(() => this.loadLevel(this.currentLevelIndex + 1), 800);
         } else {
             this.isVictory = true;
-            this.showBanner('VICTORY! All Coins Found!', 10.0);
+            this.victoryTimer = 0;
+            this.showBanner('The sky is painted!', 6.0);
             playVictory();
         }
     }
@@ -106,6 +92,17 @@ export class LevelManager {
             if (this.bannerTimer <= 0 && this.bannerElement && !this.isVictory) {
                 this.bannerElement.style.opacity = '0';
             }
+        }
+
+        if (this.isVictory) {
+            this.victoryTimer += dt;
+            if (this.victoryTimer >= 3.5) {
+                const es = document.getElementById('es');
+                if (es && es.style.display !== 'flex') {
+                    es.style.display = 'flex';
+                }
+            }
+            return;
         }
 
         coin.update(dt);

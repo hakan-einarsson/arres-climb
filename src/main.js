@@ -20,17 +20,9 @@ const renderer = new Renderer(canvas, camera, 16 / 9);
 addGameObject(player);
 
 function resizeCanvas() {
-  const targetAspect = 16 / 9;
-  const winW = window.innerWidth;
-  const winH = window.innerHeight;
-  let w, h;
-  if (winW / winH > targetAspect) {
-    h = winH;
-    w = Math.floor(winH * targetAspect);
-  } else {
-    w = winW;
-    h = Math.floor(winW / targetAspect);
-  }
+  const winW = window.innerWidth, winH = window.innerHeight;
+  const w = winW / winH > 16 / 9 ? Math.floor(winH * 16 / 9) : winW;
+  const h = winW / winH > 16 / 9 ? winH : Math.floor(winW * 9 / 16);
   canvas.width = w;
   canvas.height = h;
   renderer.resize(w, h);
@@ -74,10 +66,25 @@ if (savedLvl > 0 && btnGroup && startBtn) {
   startBtn.onclick = () => startGame(0);
 }
 
+const endScreen = document.getElementById('es');
+const endBtn = document.getElementById('eb');
+if (endBtn) {
+  endBtn.onclick = () => {
+    resetProgress();
+    if (endScreen) endScreen.style.display = 'none';
+    isGameStarted = false;
+    levelManager.isVictory = false;
+    if (startBtn) startBtn.textContent = 'START';
+    if (titleScreen) titleScreen.style.display = 'flex';
+    levelManager.loadLevel(0);
+  };
+}
+
 function startGame(lvlIndex = 0) {
   unlockAudio();
   isGameStarted = true;
   if (titleScreen) titleScreen.style.display = 'none';
+  if (endScreen) endScreen.style.display = 'none';
   levelManager.loadLevel(lvlIndex);
 }
 

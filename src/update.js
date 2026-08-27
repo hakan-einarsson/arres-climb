@@ -12,7 +12,14 @@ export function rotateY(x, z, angle) {
 }
 
 export function update(dt) {
-    inputUpdate(dt);
+    if (levelManager.isVictory) {
+        player.vx = 0;
+        player.vz = 0;
+        camera.yaw += dt * 0.25;
+        camera.pitch = Math.min(0.55, camera.pitch + dt * 0.05);
+    } else {
+        inputUpdate(dt);
+    }
 
     updatePhysics(player, dt);
 

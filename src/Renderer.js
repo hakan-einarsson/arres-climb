@@ -1,6 +1,7 @@
 import { vertexShaderSource } from './vertexShaderSource.js';
 import { fragmentShaderSource } from './fragmentShaderSource.js';
 import textureUrl from './assets/textures.png';
+import { levelManager } from './levelManager.js';
 
 class Renderer {
     constructor(canvas, camera, aspectRatio = 1.0) {
@@ -85,7 +86,12 @@ class Renderer {
 
     draw() {
         const gl = this.gl;
-        gl.clearColor(0.25, 0.3, 0.45, 1);
+        if (levelManager.isVictory) {
+            const t = levelManager.victoryTimer * 1.8;
+            gl.clearColor(0.5 + 0.4 * Math.sin(t), 0.4 + 0.35 * Math.sin(t + 2.1), 0.6 + 0.35 * Math.sin(t + 4.2), 1);
+        } else {
+            gl.clearColor(0.25, 0.3, 0.45, 1);
+        }
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.activeTexture(gl.TEXTURE0);
