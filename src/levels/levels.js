@@ -1,4 +1,4 @@
-const G = 1, R = 2, S = 3, RB = 4, MX = 5, MZ = 6;
+const G = 1, R = 2, S = 3, RB = 4, MX = 5, MZ = 6, C = 7;
 
 export const LEVELS = [
     [
@@ -814,7 +814,7 @@ export const LEVELS = [
                 0,
                 13,
                 0,
-                "CLOUD"
+                C
             ]
         ]
     ],
@@ -870,7 +870,7 @@ export const LEVELS = [
                 0,
                 13,
                 0,
-                "CLOUD"
+                C
             ],
             [
                 0,
@@ -938,7 +938,7 @@ export const LEVELS = [
                 1,
                 1,
                 -4,
-                "CLOUD"
+                C
             ],
             [
                 -3,
@@ -951,7 +951,7 @@ export const LEVELS = [
                 0,
                 1,
                 -5,
-                "CLOUD"
+                C
             ],
             [
                 -3,
@@ -996,7 +996,7 @@ export const LEVELS = [
                 1,
                 10,
                 1,
-                "CLOUD"
+                C
             ],
             [
                 2,
@@ -1014,37 +1014,37 @@ export const LEVELS = [
                 -4,
                 10,
                 5,
-                "CLOUD"
+                C
             ],
             [
                 -4,
                 11,
                 6,
-                "CLOUD"
+                C
             ],
             [
                 -3,
                 12,
                 6,
-                "CLOUD"
+                C
             ],
             [
                 -2,
                 13,
                 6,
-                "CLOUD"
+                C
             ],
             [
                 -1,
                 14,
                 6,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 15,
                 6,
-                "CLOUD"
+                C
             ],
             [
                 0,
@@ -1063,31 +1063,31 @@ export const LEVELS = [
                 1,
                 20,
                 1,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 20,
                 1,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 20,
                 2,
-                "CLOUD"
+                C
             ],
             [
                 1,
                 20,
                 2,
-                "CLOUD"
+                C
             ],
             [
                 1,
                 3,
                 1,
-                "CLOUD"
+                C
             ],
             [
                 3,
@@ -1105,43 +1105,43 @@ export const LEVELS = [
                 0,
                 10,
                 1,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 11,
                 1,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 12,
                 1,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 11,
                 2,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 11,
                 0,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 12,
                 2,
-                "CLOUD"
+                C
             ],
             [
                 0,
                 12,
                 0,
-                "CLOUD"
+                C
             ]
         ]
     ]

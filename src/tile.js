@@ -14,30 +14,37 @@ export function getUV(col, row) {
 }
 
 export const uvMap = {
-    1: [1, 0], 2: [3, 2], 3: [5, 4], 4: [7, 6], 5: [8, 8], 6: [8, 8],
-    G: [1, 0], R: [3, 2], S: [5, 4], RB: [7, 6], MX: [8, 8], MZ: [8, 8],
+    1: [1, 0], 2: [3, 2], 3: [5, 4], 4: [7, 6], 5: [8, 8], 6: [8, 8], 7: [9, 9],
+    G: [1, 0], R: [3, 2], S: [5, 4], RB: [7, 6], MX: [8, 8], MZ: [8, 8], C: [9, 9],
     GRASS: [1, 0], ROCK: [3, 2], SNOW: [5, 4], CLOUD: [9, 9],
     POINTER: [9, 8], RAINBOW: [7, 6], MOVING: [8, 8], MOVING_X: [8, 8], MOVING_Z: [8, 8]
 };
 
+const FACES = [
+    [0,1,0, 1,1,0, 1,1,1, 0,1,1, 1.1, 1],
+    [0,0,1, 1,0,1, 1,0,0, 0,0,0, 0.2, 0],
+    [0,0,0, 1,0,0, 1,1,0, 0,1,0, 0.95, 0],
+    [1,0,1, 0,0,1, 0,1,1, 1,1,1, 0.35, 0],
+    [0,0,1, 0,0,0, 0,1,0, 0,1,1, 0.55, 0],
+    [1,0,0, 1,0,1, 1,1,1, 1,1,0, 0.7, 0]
+];
+
 export function createBlock(x, y, z, type = 1, isWorld = false) {
     const x0 = isWorld ? x : x * TILE_SIZE, y0 = isWorld ? y : y * TILE_SIZE, z0 = isWorld ? z : z * TILE_SIZE;
-    const x1 = x0 + TILE_SIZE, y1 = y0 + TILE_SIZE, z1 = z0 + TILE_SIZE;
     const [tC, bC] = uvMap[type] || [1, 0];
-    const { u0: gu0, v0: gv0, u1: gu1, v1: gv1 } = getUV(tC, 0);
-    const { u0: du0, v0: dv0, u1: du1, v1: dv1 } = getUV(bC, 0);
+    const topUV = getUV(tC, 0), botUV = getUV(bC, 0);
+    const res = [];
 
-    const h = Math.min(1.0, 0.82 + (y0 / 4) * 0.18); // 4 is just winged, should be set out of the levels maxHeight...
-    const lTop = 1.1, lFrnt = 0.95, lRgt = 0.7, lLeft = 0.55, lBck = 0.35, lBtm = 0.2;
-
-    return [
-        [x0, y1, z0, gu0, gv0, lTop], [x1, y1, z0, gu1, gv0, lTop], [x1, y1, z1, gu1, gv1, lTop], [x0, y1, z0, gu0, gv0, lTop], [x1, y1, z1, gu1, gv1, lTop], [x0, y1, z1, gu0, gv1, lTop],
-        [x0, y0, z1, du0, dv1, lBtm], [x1, y0, z1, du1, dv1, lBtm], [x1, y0, z0, du1, dv0, lBtm], [x0, y0, z1, du0, dv1, lBtm], [x1, y0, z0, du1, dv0, lBtm], [x0, y0, z0, du0, dv0, lBtm],
-        [x0, y0, z0, du0, dv1, lFrnt], [x1, y0, z0, du1, dv1, lFrnt], [x1, y1, z0, du1, dv0, lFrnt], [x0, y0, z0, du0, dv1, lFrnt], [x1, y1, z0, du1, dv0, lFrnt], [x0, y1, z0, du0, dv0, lFrnt],
-        [x1, y0, z1, du0, dv1, lBck], [x0, y0, z1, du1, dv1, lBck], [x0, y1, z1, du1, dv0, lBck], [x1, y0, z1, du0, dv1, lBck], [x0, y1, z1, du1, dv0, lBck], [x1, y1, z1, du0, dv0, lBck],
-        [x0, y0, z1, du0, dv1, lLeft], [x0, y0, z0, du1, dv1, lLeft], [x0, y1, z0, du1, dv0, lLeft], [x0, y0, z1, du0, dv1, lLeft], [x0, y1, z0, du1, dv0, lLeft], [x0, y1, z1, du0, dv0, lLeft],
-        [x1, y0, z0, du0, dv1, lRgt], [x1, y0, z1, du1, dv1, lRgt], [x1, y1, z1, du1, dv0, lRgt], [x1, y0, z0, du0, dv1, lRgt], [x1, y1, z1, du1, dv0, lRgt], [x1, y1, z0, du0, dv0, lRgt]
-    ];
+    for (const [x0f, y0f, z0f, x1f, y1f, z1f, x2f, y2f, z2f, x3f, y3f, z3f, light, isTop] of FACES) {
+        const u = isTop ? topUV : botUV;
+        const uvs = isTop ? [u.u0, u.v0, u.u1, u.v0, u.u1, u.v1, u.u0, u.v1] : [u.u0, u.v1, u.u1, u.v1, u.u1, u.v0, u.u0, u.v0];
+        const c0 = [x0 + x0f * TILE_SIZE, y0 + y0f * TILE_SIZE, z0 + z0f * TILE_SIZE, uvs[0], uvs[1], light];
+        const c1 = [x0 + x1f * TILE_SIZE, y0 + y1f * TILE_SIZE, z0 + z1f * TILE_SIZE, uvs[2], uvs[3], light];
+        const c2 = [x0 + x2f * TILE_SIZE, y0 + y2f * TILE_SIZE, z0 + z2f * TILE_SIZE, uvs[4], uvs[5], light];
+        const c3 = [x0 + x3f * TILE_SIZE, y0 + y3f * TILE_SIZE, z0 + z3f * TILE_SIZE, uvs[6], uvs[7], light];
+        res.push(c0, c1, c2, c0, c2, c3);
+    }
+    return res;
 }
 
 const NEAR = 0.3;

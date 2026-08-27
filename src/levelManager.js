@@ -6,23 +6,7 @@ import { camera } from './camera.js';
 import { playLevelComplete, playVictory, playFall } from './audio.js';
 
 export function getLevel(index) {
-    const l = LEVELS[index];
-    if (!l) return null;
-    if (Array.isArray(l)) {
-        return {
-            seed: l[0],
-            size: l[1],
-            maxHeight: l[2],
-            islandFactor: l[3],
-            scale: l[4],
-            threshold: l[5],
-            heightTypeMap: l[6],
-            spawn: l[7],
-            goal: l[8],
-            modifications: l[9] || []
-        };
-    }
-    return l;
+    return LEVELS[index] || null;
 }
 
 const SAVE_KEY = 'ac_lvl';
@@ -81,15 +65,16 @@ export class LevelManager {
         world.applyLevelConfig(level);
         world.createWorld(0, 0);
 
-        if (Array.isArray(level.modifications)) {
-            world.applyModifications(level.modifications);
+        const mods = Array.isArray(level) ? level[9] : level?.modifications;
+        if (Array.isArray(mods)) {
+            world.applyModifications(mods);
         }
 
-        const rawSpawn = level.spawn || world.getSpawnPosition();
+        const rawSpawn = (Array.isArray(level) ? level[7] : level?.spawn) || world.getSpawnPosition();
         const spawn = Array.isArray(rawSpawn) ? { x: rawSpawn[0], y: rawSpawn[1], z: rawSpawn[2] } : rawSpawn;
         player.spawnAt(spawn.x, spawn.y, spawn.z);
 
-        const rawGoal = level.goal || world.getGoalPosition();
+        const rawGoal = (Array.isArray(level) ? level[8] : level?.goal) || world.getGoalPosition();
         const goal = Array.isArray(rawGoal) ? { x: rawGoal[0], y: rawGoal[1], z: rawGoal[2] } : rawGoal;
         coin.setPosition(goal.x, goal.y, goal.z);
 

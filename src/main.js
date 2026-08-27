@@ -10,9 +10,7 @@ import { unlockAudio } from './audio.js';
 import { getSavedLevel, levelManager, resetProgress } from './levelManager.js';
 import textureUrl from './assets/textures.png';
 
-window.addEventListener('pointerdown', unlockAudio, { once: true });
-window.addEventListener('keydown', unlockAudio, { once: true });
-window.addEventListener('touchstart', unlockAudio, { once: true });
+['pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, unlockAudio, { once: true }));
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');

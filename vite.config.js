@@ -29,9 +29,11 @@ function saveLevelsPlugin() {
                 .replace(/"S"/g, 'S')
                 .replace(/"RB"/g, 'RB')
                 .replace(/"MX"/g, 'MX')
-                .replace(/"MZ"/g, 'MZ');
+                .replace(/"MZ"/g, 'MZ')
+                .replace(/"CLOUD"/g, 'C')
+                .replace(/"C"/g, 'C');
 
-              fileContent = `const G = 1, R = 2, S = 3, RB = 4, MX = 5, MZ = 6;\n\nexport const LEVELS = ${formatted};\n\nexport default LEVELS;\n`;
+              fileContent = `const G = 1, R = 2, S = 3, RB = 4, MX = 5, MZ = 6, C = 7;\n\nexport const LEVELS = ${formatted};\n\nexport default LEVELS;\n`;
             } else {
               throw new Error('Invalid payload: expected "code" string or "levels" array');
             }
@@ -56,18 +58,21 @@ export default defineConfig({
   plugins: [saveLevelsPlugin()],
   build: {
     target: 'esnext',
-    assetsInlineLimit: 0,
+    assetsInlineLimit: 100000,
     minify: 'terser',
     terserOptions: {
       ecma: 2020,
       module: true,
       toplevel: true,
       compress: {
-        passes: 3,
+        passes: 5,
         unsafe: true,
         unsafe_arrows: true,
         unsafe_methods: true,
         unsafe_proto: true,
+        unsafe_math: true,
+        booleans_as_integers: true,
+        hoist_vars: true,
         drop_console: true,
         drop_debugger: true,
         pure_getters: true,

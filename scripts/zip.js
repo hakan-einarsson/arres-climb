@@ -1,29 +1,59 @@
 import fs from 'fs';
 import path from 'path';
 import zlib from 'zlib';
+import { Packer } from 'roadroller';
 
 const DIST_DIR = path.resolve('dist');
 const OUTPUT_ZIP = path.resolve('dist/index.zip');
 const MAX_BYTES = 13312; // 13 KB limit for js13k
 
-function prepareDist() {
+async function prepareDist() {
     const htmlPath = path.join(DIST_DIR, 'index.html');
     if (!fs.existsSync(htmlPath)) return;
     let html = fs.readFileSync(htmlPath, 'utf8');
 
+    let jsCode = '';
     const assetsDir = path.join(DIST_DIR, 'assets');
+
+    // Case 1: Separate JS in assets
     if (fs.existsSync(assetsDir)) {
         const jsFiles = fs.readdirSync(assetsDir).filter(f => f.endsWith('.js'));
         if (jsFiles.length > 0) {
             const jsFile = jsFiles[0];
-            const jsCode = fs.readFileSync(path.join(assetsDir, jsFile), 'utf8');
-            html = html.replace(
-                /<script type="module" crossorigin src="\/assets\/main-[^"]+"><\/script>/,
-                `<script type="module">${jsCode}</script>`
-            );
-            fs.writeFileSync(htmlPath, html);
+            jsCode = fs.readFileSync(path.join(assetsDir, jsFile), 'utf8');
             fs.unlinkSync(path.join(assetsDir, jsFile));
         }
+    }
+
+    // Case 2: Inlined JS in html
+    if (!jsCode) {
+        const scriptMatch = html.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
+        if (scriptMatch && scriptMatch[1].trim()) {
+            jsCode = scriptMatch[1];
+        }
+    }
+
+    if (jsCode) {
+        console.log(`Original JS size: ${jsCode.length} bytes`);
+        console.log('Packing JS with Roadroller...');
+        const packer = new Packer([{ data: jsCode, type: 'js', action: 'eval' }], {});
+        await packer.optimize();
+        const { firstLine, secondLine } = packer.makeDecoder();
+        const packedJs = firstLine + '\n' + secondLine;
+        console.log(`Packed JS size: ${packedJs.length} bytes`);
+
+        // Replace any existing script tags with the packed script
+        if (/<script\b[^>]*>[\s\S]*?<\/script>/i.test(html)) {
+            html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/i, `<script>${packedJs}</script>`);
+        } else {
+            html = html.replace('</body>', `<script>${packedJs}</script></body>`);
+        }
+        fs.writeFileSync(htmlPath, html);
+    }
+
+    // Clean up empty assets directory if any
+    if (fs.existsSync(assetsDir) && fs.readdirSync(assetsDir).length === 0) {
+        fs.rmdirSync(assetsDir);
     }
 }
 
@@ -163,6 +193,10 @@ function createZip(files, outputPath) {
     console.log(`========================================\n`);
 }
 
-prepareDist();
-const files = getFiles(DIST_DIR);
-createZip(files, OUTPUT_ZIP);
+async function run() {
+    await prepareDist();
+    const files = getFiles(DIST_DIR);
+    createZip(files, OUTPUT_ZIP);
+}
+
+run();

@@ -19,16 +19,27 @@ class World {
     }
 
     applyLevelConfig(config) {
-        if (typeof config.seed === 'number') this.seed = config.seed;
-        if (typeof config.size === 'number') this.chunkRadius = config.size;
-        if (typeof config.maxHeight === 'number') this.maxHeight = config.maxHeight;
-        if (typeof config.islandFactor === 'number') this.islandFactor = config.islandFactor;
-        if (typeof config.scale === 'number') this.scale = config.scale;
-        if (typeof config.threshold === 'number') this.threshold = config.threshold;
-        if (Array.isArray(config.heightTypeMap)) {
-            this.heightTypeMap = { grassMax: config.heightTypeMap[0], rockMax: config.heightTypeMap[1], snowMax: config.heightTypeMap[2] };
-        } else if (config.heightTypeMap && typeof config.heightTypeMap === 'object') {
-            this.heightTypeMap = { ...this.heightTypeMap, ...config.heightTypeMap };
+        if (Array.isArray(config)) {
+            this.seed = config[0];
+            this.chunkRadius = config[1];
+            this.maxHeight = config[2];
+            this.islandFactor = config[3];
+            this.scale = config[4];
+            this.threshold = config[5];
+            const h = config[6];
+            this.heightTypeMap = { grassMax: h[0], rockMax: h[1], snowMax: h[2] };
+        } else if (config) {
+            if (typeof config.seed === 'number') this.seed = config.seed;
+            if (typeof config.size === 'number') this.chunkRadius = config.size;
+            if (typeof config.maxHeight === 'number') this.maxHeight = config.maxHeight;
+            if (typeof config.islandFactor === 'number') this.islandFactor = config.islandFactor;
+            if (typeof config.scale === 'number') this.scale = config.scale;
+            if (typeof config.threshold === 'number') this.threshold = config.threshold;
+            if (Array.isArray(config.heightTypeMap)) {
+                this.heightTypeMap = { grassMax: config.heightTypeMap[0], rockMax: config.heightTypeMap[1], snowMax: config.heightTypeMap[2] };
+            } else if (config.heightTypeMap && typeof config.heightTypeMap === 'object') {
+                this.heightTypeMap = { ...this.heightTypeMap, ...config.heightTypeMap };
+            }
         }
         this.perm = generatePermTable(this.seed);
     }
