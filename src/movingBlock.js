@@ -33,45 +33,20 @@ export class MovingBlock {
     }
 
     checkWallCollision(nextX, nextZ) {
-        const testMinX = nextX;
-        const testMaxX = nextX + TILE_SIZE;
-        const testMinY = this.y;
-        const testMaxY = this.y + TILE_SIZE;
-        const testMinZ = nextZ;
-        const testMaxZ = nextZ + TILE_SIZE;
-
         for (const obj of gameObjects) {
-            if (obj === this) continue;
-            if (obj instanceof Tile && obj.type !== 'HOLE') {
-                const tMinX = obj.gridX * TILE_SIZE;
-                const tMaxX = tMinX + TILE_SIZE;
-                const tMinY = obj.gridY * TILE_SIZE;
-                const tMaxY = tMinY + TILE_SIZE;
-                const tMinZ = obj.gridZ * TILE_SIZE;
-                const tMaxZ = tMinZ + TILE_SIZE;
+            if (obj === this || obj.type === 'HOLE') continue;
+            const isTile = obj instanceof Tile;
+            const isMb = obj instanceof MovingBlock;
+            if (!isTile && !isMb) continue;
 
-                const overlapX = testMinX < tMaxX && testMaxX > tMinX;
-                const overlapY = testMinY < tMaxY && testMaxY > tMinY;
-                const overlapZ = testMinZ < tMaxZ && testMaxZ > tMinZ;
+            const tX = isTile ? obj.gridX * TILE_SIZE : obj.x;
+            const tY = isTile ? obj.gridY * TILE_SIZE : obj.y;
+            const tZ = isTile ? obj.gridZ * TILE_SIZE : obj.z;
 
-                if (overlapX && overlapY && overlapZ) {
-                    return true;
-                }
-            } else if (obj instanceof MovingBlock) {
-                const tMinX = obj.x;
-                const tMaxX = obj.x + TILE_SIZE;
-                const tMinY = obj.y;
-                const tMaxY = obj.y + TILE_SIZE;
-                const tMinZ = obj.z;
-                const tMaxZ = obj.z + TILE_SIZE;
-
-                const overlapX = testMinX < tMaxX && testMaxX > tMinX;
-                const overlapY = testMinY < tMaxY && testMaxY > tMinY;
-                const overlapZ = testMinZ < tMaxZ && testMaxZ > tMinZ;
-
-                if (overlapX && overlapY && overlapZ) {
-                    return true;
-                }
+            if (nextX < tX + TILE_SIZE && nextX + TILE_SIZE > tX &&
+                this.y < tY + TILE_SIZE && this.y + TILE_SIZE > tY &&
+                nextZ < tZ + TILE_SIZE && nextZ + TILE_SIZE > tZ) {
+                return true;
             }
         }
         return false;
@@ -79,31 +54,19 @@ export class MovingBlock {
 
     update(dt) {
         let step = this.direction * this.speed * dt;
-        let nextX = this.x;
-        let nextZ = this.z;
+        const isX = this.axis === 'x';
+        let nextX = this.x + (isX ? step : 0);
+        let nextZ = this.z + (isX ? 0 : step);
 
-        if (this.axis === 'x') {
-            nextX += step;
-            const distFromStart = nextX - this.startX;
-            const hitWall = this.checkWallCollision(nextX, this.z);
-            const reachedMax = this.maxDistance > 0 && (distFromStart > this.maxDistance || distFromStart < 0);
+        const distFromStart = (isX ? nextX : nextZ) - (isX ? this.startX : this.startZ);
+        const hitWall = this.checkWallCollision(nextX, nextZ);
+        const reachedMax = this.maxDistance > 0 && (distFromStart > this.maxDistance || distFromStart < 0);
 
-            if (hitWall || reachedMax) {
-                this.direction = -this.direction;
-                step = this.direction * this.speed * dt;
-                nextX = this.x + step;
-            }
-        } else {
-            nextZ += step;
-            const distFromStart = nextZ - this.startZ;
-            const hitWall = this.checkWallCollision(this.x, nextZ);
-            const reachedMax = this.maxDistance > 0 && (distFromStart > this.maxDistance || distFromStart < 0);
-
-            if (hitWall || reachedMax) {
-                this.direction = -this.direction;
-                step = this.direction * this.speed * dt;
-                nextZ = this.z + step;
-            }
+        if (hitWall || reachedMax) {
+            this.direction = -this.direction;
+            step = this.direction * this.speed * dt;
+            nextX = this.x + (isX ? step : 0);
+            nextZ = this.z + (isX ? 0 : step);
         }
 
         // Check if player is riding on top
@@ -115,44 +78,34 @@ export class MovingBlock {
             moveAxis(player, this.axis, step);
         } else {
             // Check if block is pushing player / crushing against obstacle
-            const testX = this.axis === 'x' ? nextX : this.x;
-            const testZ = this.axis === 'z' ? nextZ : this.z;
+            const testX = isX ? nextX : this.x;
+            const testZ = isX ? this.z : nextZ;
 
             const overlapX = (player.x + player.width / 2 > testX + 0.002) && (player.x - player.width / 2 < testX + TILE_SIZE - 0.002);
             const overlapY = (player.y + player.height > this.y + 0.002) && (player.y < this.y + TILE_SIZE - 0.002);
             const overlapZ = (player.z + player.depth / 2 > testZ + 0.002) && (player.z - player.depth / 2 < testZ + TILE_SIZE - 0.002);
 
             if (overlapX && overlapY && overlapZ) {
-                let pushDelta = 0;
-                if (this.axis === 'x') {
-                    const targetX = this.direction > 0 ? (testX + TILE_SIZE + player.width / 2) : (testX - player.width / 2);
-                    pushDelta = targetX - player.x;
-                } else {
-                    const targetZ = this.direction > 0 ? (testZ + TILE_SIZE + player.depth / 2) : (testZ - player.depth / 2);
-                    pushDelta = targetZ - player.z;
-                }
+                const targetPos = this.direction > 0 ? ((isX ? testX : testZ) + TILE_SIZE + (isX ? player.width : player.depth) / 2) : ((isX ? testX : testZ) - (isX ? player.width : player.depth) / 2);
+                const pushDelta = targetPos - player[this.axis];
 
                 const prevPos = player[this.axis];
                 moveAxis(player, this.axis, pushDelta);
                 const moved = Math.abs(player[this.axis] - prevPos);
 
                 if (moved < Math.abs(pushDelta) - 0.001) {
-                    // Crushed against wall or obstacle: reverse direction immediately!
                     this.direction = -this.direction;
                     step = this.direction * this.speed * dt;
-                    if (this.axis === 'x') {
-                        nextX = this.x + step;
-                    } else {
-                        nextZ = this.z + step;
-                    }
+                    nextX = this.x + (isX ? step : 0);
+                    nextZ = this.z + (isX ? 0 : step);
                 }
             }
         }
 
         this.x = nextX;
         this.z = nextZ;
-        this.vx = this.axis === 'x' ? this.direction * this.speed : 0;
-        this.vz = this.axis === 'z' ? this.direction * this.speed : 0;
+        this.vx = isX ? this.direction * this.speed : 0;
+        this.vz = isX ? 0 : this.direction * this.speed;
         this.gridX = Math.floor(this.x / TILE_SIZE);
         this.gridZ = Math.floor(this.z / TILE_SIZE);
     }

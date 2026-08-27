@@ -1,29 +1,72 @@
 import fs from 'fs';
 import path from 'path';
 import zlib from 'zlib';
+import { Packer } from 'roadroller';
 
 const DIST_DIR = path.resolve('dist');
 const OUTPUT_ZIP = path.resolve('dist/index.zip');
 const MAX_BYTES = 13312; // 13 KB limit for js13k
 
-function prepareDist() {
+async function prepareDist() {
     const htmlPath = path.join(DIST_DIR, 'index.html');
     if (!fs.existsSync(htmlPath)) return;
     let html = fs.readFileSync(htmlPath, 'utf8');
 
+    let jsCode = '';
     const assetsDir = path.join(DIST_DIR, 'assets');
+
+    // Case 1: Separate JS in assets
     if (fs.existsSync(assetsDir)) {
         const jsFiles = fs.readdirSync(assetsDir).filter(f => f.endsWith('.js'));
         if (jsFiles.length > 0) {
             const jsFile = jsFiles[0];
-            const jsCode = fs.readFileSync(path.join(assetsDir, jsFile), 'utf8');
-            html = html.replace(
-                /<script type="module" crossorigin src="\/assets\/main-[^"]+"><\/script>/,
-                `<script type="module">${jsCode}</script>`
-            );
-            fs.writeFileSync(htmlPath, html);
+            jsCode = fs.readFileSync(path.join(assetsDir, jsFile), 'utf8');
             fs.unlinkSync(path.join(assetsDir, jsFile));
         }
+    }
+
+    // Case 2: Separate JS in root dist
+    if (!jsCode && fs.existsSync(DIST_DIR)) {
+        const jsFiles = fs.readdirSync(DIST_DIR).filter(f => f.endsWith('.js'));
+        if (jsFiles.length > 0) {
+            const jsFile = jsFiles[0];
+            jsCode = fs.readFileSync(path.join(DIST_DIR, jsFile), 'utf8');
+            fs.unlinkSync(path.join(DIST_DIR, jsFile));
+        }
+    }
+
+    // Case 3: Inlined JS in html
+    if (!jsCode) {
+        const scriptMatch = html.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
+        if (scriptMatch && scriptMatch[1].trim()) {
+            jsCode = scriptMatch[1];
+        }
+    }
+
+    if (jsCode) {
+        // Replace import.meta.url and relative URLs with simple static string
+        jsCode = jsCode.replace(/new URL\((['\"][^'\"]+['\"])\s*,\s*import\.meta\.url\)\.href/g, '$1');
+        jsCode = jsCode.replace(/(["'])\.\.\/textures\.png\1/g, '$1textures.png$1');
+        jsCode = jsCode.replace(/(["'])\/textures\.png\1/g, '$1textures.png$1');
+        jsCode = jsCode.replace(/(["'])\.\/textures\.png\1/g, '$1textures.png$1');
+
+        console.log(`Original JS size: ${jsCode.length} bytes`);
+        console.log('Packing JS with Roadroller...');
+        const packer = new Packer([{ data: jsCode, type: 'js', action: 'eval' }], {});
+        await packer.optimize();
+        const { firstLine, secondLine } = packer.makeDecoder();
+        const packedJs = firstLine + '\n' + secondLine;
+        console.log(`Packed JS size: ${packedJs.length} bytes`);
+
+        // Remove any existing script tags and place packed script at end of body so DOM is fully parsed
+        html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+        html = html.replace('</body>', `<script>${packedJs}</script></body>`);
+        fs.writeFileSync(htmlPath, html);
+    }
+
+    // Clean up empty assets directory if any
+    if (fs.existsSync(assetsDir) && fs.readdirSync(assetsDir).length === 0) {
+        fs.rmdirSync(assetsDir);
     }
 }
 
@@ -163,6 +206,10 @@ function createZip(files, outputPath) {
     console.log(`========================================\n`);
 }
 
-prepareDist();
-const files = getFiles(DIST_DIR);
-createZip(files, OUTPUT_ZIP);
+async function run() {
+    await prepareDist();
+    const files = getFiles(DIST_DIR);
+    createZip(files, OUTPUT_ZIP);
+}
+
+run();

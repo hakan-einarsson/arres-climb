@@ -7,12 +7,10 @@ import { initPointer } from './input.js';
 import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
 import { unlockAudio } from './audio.js';
-import { getSavedLevel, levelManager, resetProgress } from './levelManager.js';
+import { getSavedLevel, levelManager, resetProgress, getBestTime, fmtTime } from './levelManager.js';
 import textureUrl from './assets/textures.png';
 
-window.addEventListener('pointerdown', unlockAudio, { once: true });
-window.addEventListener('keydown', unlockAudio, { once: true });
-window.addEventListener('touchstart', unlockAudio, { once: true });
+['pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, unlockAudio, { once: true }));
 
 const app = document.getElementById('app');
 const canvas = document.createElement('canvas');
@@ -22,17 +20,9 @@ const renderer = new Renderer(canvas, camera, 16 / 9);
 addGameObject(player);
 
 function resizeCanvas() {
-  const targetAspect = 16 / 9;
-  const winW = window.innerWidth;
-  const winH = window.innerHeight;
-  let w, h;
-  if (winW / winH > targetAspect) {
-    h = winH;
-    w = Math.floor(winH * targetAspect);
-  } else {
-    w = winW;
-    h = Math.floor(winW / targetAspect);
-  }
+  const winW = window.innerWidth, winH = window.innerHeight;
+  const w = winW / winH > 16 / 9 ? Math.floor(winH * 16 / 9) : winW;
+  const h = winW / winH > 16 / 9 ? winH : Math.floor(winW * 9 / 16);
   canvas.width = w;
   canvas.height = h;
   renderer.resize(w, h);
@@ -60,6 +50,13 @@ if (logoCvs) {
   img.src = textureUrl;
 }
 
+const updateBestDisplay = () => {
+  const b = getBestTime();
+  const bt = document.getElementById('bt');
+  if (bt) bt.textContent = b ? 'BEST TIME: ' + fmtTime(b) : '';
+};
+updateBestDisplay();
+
 const savedLvl = getSavedLevel();
 if (savedLvl > 0 && btnGroup && startBtn) {
   startBtn.textContent = `CONTINUE (LEVEL ${savedLvl + 1})`;
@@ -76,10 +73,26 @@ if (savedLvl > 0 && btnGroup && startBtn) {
   startBtn.onclick = () => startGame(0);
 }
 
+const endScreen = document.getElementById('es');
+const endBtn = document.getElementById('eb');
+if (endBtn) {
+  endBtn.onclick = () => {
+    resetProgress();
+    updateBestDisplay();
+    if (endScreen) endScreen.style.display = 'none';
+    isGameStarted = false;
+    levelManager.isVictory = false;
+    if (startBtn) startBtn.textContent = 'START';
+    if (titleScreen) titleScreen.style.display = 'flex';
+    levelManager.loadLevel(0);
+  };
+}
+
 function startGame(lvlIndex = 0) {
   unlockAudio();
   isGameStarted = true;
   if (titleScreen) titleScreen.style.display = 'none';
+  if (endScreen) endScreen.style.display = 'none';
   levelManager.loadLevel(lvlIndex);
 }
 

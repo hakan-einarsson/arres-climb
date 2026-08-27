@@ -6,35 +6,25 @@ import { playJump, playRainbowBounce } from './audio.js';
 const GRAVITY = -9.8;
 
 function getNearbySolids(entity) {
-    const minX = entity.x - TILE_SIZE * 1.5;
-    const maxX = entity.x + TILE_SIZE * 1.5;
-    const minZ = entity.z - TILE_SIZE * 1.5;
-    const maxZ = entity.z + TILE_SIZE * 1.5;
-    const minY = entity.y - TILE_SIZE * 1.5;
-    const maxY = entity.y + TILE_SIZE * 2.0;
+    const minX = entity.x - TILE_SIZE * 1.5, maxX = entity.x + TILE_SIZE * 1.5;
+    const minZ = entity.z - TILE_SIZE * 1.5, maxZ = entity.z + TILE_SIZE * 1.5;
+    const minY = entity.y - TILE_SIZE * 1.5, maxY = entity.y + TILE_SIZE * 2.0;
 
     const solids = [];
-
     for (const obj of gameObjects) {
-        if (obj instanceof Tile && obj.type !== 'HOLE') {
-            const cx = obj.gridX * TILE_SIZE + TILE_SIZE / 2;
-            const cy = obj.gridY * TILE_SIZE + TILE_SIZE / 2;
-            const cz = obj.gridZ * TILE_SIZE + TILE_SIZE / 2;
+        if (obj.type === 'HOLE') continue;
+        const isTile = obj instanceof Tile;
+        const isMb = obj instanceof MovingBlock;
+        if (!isTile && !isMb) continue;
 
-            if (cx >= minX && cx <= maxX && cz >= minZ && cz <= maxZ && cy >= minY && cy <= maxY) {
-                solids.push({ obj, center: { x: cx, y: cy, z: cz } });
-            }
-        } else if (obj instanceof MovingBlock) {
-            const cx = obj.x + TILE_SIZE / 2;
-            const cy = obj.y + TILE_SIZE / 2;
-            const cz = obj.z + TILE_SIZE / 2;
+        const cx = (isTile ? obj.gridX : obj.x / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+        const cy = (isTile ? obj.gridY : obj.y / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+        const cz = (isTile ? obj.gridZ : obj.z / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
 
-            if (cx >= minX && cx <= maxX && cz >= minZ && cz <= maxZ && cy >= minY && cy <= maxY) {
-                solids.push({ obj, center: { x: cx, y: cy, z: cz } });
-            }
+        if (cx >= minX && cx <= maxX && cz >= minZ && cz <= maxZ && cy >= minY && cy <= maxY) {
+            solids.push({ obj, center: { x: cx, y: cy, z: cz } });
         }
     }
-
     return solids;
 }
 
@@ -84,30 +74,16 @@ export function moveAxis(entity, axis, delta) {
                     return;
                 }
             }
-        } else if (axis === 'x') {
+        } else {
+            const otherAxis = axis === 'x' ? 'z' : 'x';
+            const halfOther = axis === 'x' ? halfDepth : halfWidth;
+            const halfCurrent = axis === 'x' ? halfWidth : halfDepth;
             const overlapY = entity.y < sc.y + halfTile - 0.005 && entity.y + entity.height > sc.y - halfTile + 0.005;
-            const overlapZ = Math.abs(testPos.z - sc.z) < (halfDepth + halfTile) - 0.005;
+            const overlapOther = Math.abs(testPos[otherAxis] - sc[otherAxis]) < (halfOther + halfTile) - 0.005;
 
-            if (overlapY && overlapZ && Math.abs(testPos.x - sc.x) < (halfWidth + halfTile)) {
-                if (delta > 0) {
-                    entity.x = sc.x - halfTile - halfWidth;
-                } else {
-                    entity.x = sc.x + halfTile + halfWidth;
-                }
-                entity.vx = 0;
-                return;
-            }
-        } else if (axis === 'z') {
-            const overlapY = entity.y < sc.y + halfTile - 0.005 && entity.y + entity.height > sc.y - halfTile + 0.005;
-            const overlapX = Math.abs(testPos.x - sc.x) < (halfWidth + halfTile) - 0.005;
-
-            if (overlapY && overlapX && Math.abs(testPos.z - sc.z) < (halfDepth + halfTile)) {
-                if (delta > 0) {
-                    entity.z = sc.z - halfTile - halfDepth;
-                } else {
-                    entity.z = sc.z + halfTile + halfDepth;
-                }
-                entity.vz = 0;
+            if (overlapY && overlapOther && Math.abs(testPos[axis] - sc[axis]) < (halfCurrent + halfTile)) {
+                entity[axis] = delta > 0 ? sc[axis] - halfTile - halfCurrent : sc[axis] + halfTile + halfCurrent;
+                entity['v' + axis] = 0;
                 return;
             }
         }

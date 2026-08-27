@@ -67,6 +67,8 @@ export const textureAtlas = {
     RB: { top: getUV(7, 0), bottom: getUV(6, 0) },
     MX: { top: getUV(8, 0), bottom: getUV(8, 0) },
     MZ: { top: getUV(8, 0), bottom: getUV(8, 0) },
+    C: { top: getUV(9, 0), bottom: getUV(9, 0) },
+    7: { top: getUV(9, 0), bottom: getUV(9, 0) },
     GRASS: { top: getUV(1, 0), bottom: getUV(0, 0) },
     ROCK: { top: getUV(3, 0), bottom: getUV(2, 0) },
     SNOW: { top: getUV(5, 0), bottom: getUV(4, 0) },

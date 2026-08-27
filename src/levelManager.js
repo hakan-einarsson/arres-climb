@@ -6,52 +6,25 @@ import { camera } from './camera.js';
 import { playLevelComplete, playVictory, playFall } from './audio.js';
 
 export function getLevel(index) {
-    const l = LEVELS[index];
-    if (!l) return null;
-    if (Array.isArray(l)) {
-        return {
-            seed: l[0],
-            size: l[1],
-            maxHeight: l[2],
-            islandFactor: l[3],
-            scale: l[4],
-            threshold: l[5],
-            heightTypeMap: l[6],
-            spawn: l[7],
-            goal: l[8],
-            modifications: l[9] || []
-        };
-    }
-    return l;
+    return LEVELS[index] || null;
 }
 
 const SAVE_KEY = 'ac_lvl';
+const BEST_KEY = 'ac_best';
 
-export function getSavedLevel() {
-    try {
-        const val = localStorage.getItem(SAVE_KEY);
-        return val !== null ? parseInt(val, 10) || 0 : 0;
-    } catch {
-        return 0;
-    }
-}
-
-export function saveProgress(idx) {
-    try {
-        localStorage.setItem(SAVE_KEY, idx.toString());
-    } catch { }
-}
-
-export function resetProgress() {
-    try {
-        localStorage.removeItem(SAVE_KEY);
-    } catch { }
-}
+export const getSavedLevel = () => { try { return +localStorage.getItem(SAVE_KEY) || 0; } catch { return 0; } };
+export const saveProgress = idx => { try { localStorage.setItem(SAVE_KEY, idx); } catch { } };
+export const resetProgress = () => { try { localStorage.removeItem(SAVE_KEY); } catch { } };
+export const getBestTime = () => { try { return +localStorage.getItem(BEST_KEY) || 0; } catch { return 0; } };
+export const saveBestTime = t => { try { localStorage.setItem(BEST_KEY, t); } catch { } };
+export const fmtTime = t => (t / 60 | 0) + ':' + (t % 60 < 10 ? '0' : '') + (t % 60).toFixed(1);
 
 export class LevelManager {
     constructor() {
         this.currentLevelIndex = 0;
         this.isVictory = false;
+        this.victoryTimer = 0;
+        this.playTime = 0;
         this.bannerElement = typeof document !== 'undefined' ? document.getElementById('b') : null;
         this.bannerTimer = 0;
     }
@@ -75,21 +48,24 @@ export class LevelManager {
         this.currentLevelIndex = index;
         saveProgress(index);
         this.isVictory = false;
+        this.victoryTimer = 0;
+        if (index === 0) this.playTime = 0;
         const level = getLevel(index);
 
         world.clearWorld();
         world.applyLevelConfig(level);
         world.createWorld(0, 0);
 
-        if (Array.isArray(level.modifications)) {
-            world.applyModifications(level.modifications);
+        const mods = Array.isArray(level) ? level[9] : level?.modifications;
+        if (Array.isArray(mods)) {
+            world.applyModifications(mods);
         }
 
-        const rawSpawn = level.spawn || world.getSpawnPosition();
+        const rawSpawn = (Array.isArray(level) ? level[7] : level?.spawn) || world.getSpawnPosition();
         const spawn = Array.isArray(rawSpawn) ? { x: rawSpawn[0], y: rawSpawn[1], z: rawSpawn[2] } : rawSpawn;
         player.spawnAt(spawn.x, spawn.y, spawn.z);
 
-        const rawGoal = level.goal || world.getGoalPosition();
+        const rawGoal = (Array.isArray(level) ? level[8] : level?.goal) || world.getGoalPosition();
         const goal = Array.isArray(rawGoal) ? { x: rawGoal[0], y: rawGoal[1], z: rawGoal[2] } : rawGoal;
         coin.setPosition(goal.x, goal.y, goal.z);
 
@@ -104,7 +80,11 @@ export class LevelManager {
             setTimeout(() => this.loadLevel(this.currentLevelIndex + 1), 800);
         } else {
             this.isVictory = true;
-            this.showBanner('VICTORY! All Coins Found!', 10.0);
+            this.victoryTimer = 0;
+            const prev = getBestTime();
+            if (!prev || this.playTime < prev) saveBestTime(this.playTime);
+            const vt = document.getElementById('vt');
+            if (vt) vt.textContent = 'TIME: ' + fmtTime(this.playTime) + (prev && this.playTime >= prev ? ' (BEST: ' + fmtTime(prev) + ')' : ' - NEW RECORD!');
             playVictory();
         }
     }
@@ -123,6 +103,18 @@ export class LevelManager {
             }
         }
 
+        if (this.isVictory) {
+            this.victoryTimer += dt;
+            if (this.victoryTimer >= 3.5) {
+                const es = document.getElementById('es');
+                if (es && es.style.display !== 'flex') {
+                    es.style.display = 'flex';
+                }
+            }
+            return;
+        }
+
+        this.playTime += dt;
         coin.update(dt);
 
         if (coin.checkCollision(player)) {
