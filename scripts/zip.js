@@ -42,12 +42,9 @@ async function prepareDist() {
         const packedJs = firstLine + '\n' + secondLine;
         console.log(`Packed JS size: ${packedJs.length} bytes`);
 
-        // Replace any existing script tags with the packed script
-        if (/<script\b[^>]*>[\s\S]*?<\/script>/i.test(html)) {
-            html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/i, `<script>${packedJs}</script>`);
-        } else {
-            html = html.replace('</body>', `<script>${packedJs}</script></body>`);
-        }
+        // Remove any existing script tags and place packed script at end of body so DOM is fully parsed
+        html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+        html = html.replace('</body>', `<script>${packedJs}</script></body>`);
         fs.writeFileSync(htmlPath, html);
     }
 

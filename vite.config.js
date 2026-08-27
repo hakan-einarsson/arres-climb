@@ -58,7 +58,7 @@ export default defineConfig({
   plugins: [saveLevelsPlugin()],
   build: {
     target: 'esnext',
-    assetsInlineLimit: 100000,
+    assetsInlineLimit: 0,
     minify: 'terser',
     terserOptions: {
       ecma: 2020,
