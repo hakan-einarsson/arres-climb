@@ -10,11 +10,12 @@ export function getLevel(index) {
 }
 
 const SAVE_KEY = 'ac_lvl';
+const TIME_KEY = 'ac_time';
 const BEST_KEY = 'ac_best';
 
 export const getSavedLevel = () => { try { return +localStorage.getItem(SAVE_KEY) || 0; } catch { return 0; } };
-export const saveProgress = idx => { try { localStorage.setItem(SAVE_KEY, idx); } catch { } };
-export const resetProgress = () => { try { localStorage.removeItem(SAVE_KEY); } catch { } };
+export const saveProgress = (idx, t = 0) => { try { localStorage.setItem(SAVE_KEY, idx); localStorage.setItem(TIME_KEY, t); } catch { } };
+export const resetProgress = () => { try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(TIME_KEY); } catch { } };
 export const getBestTime = () => { try { return +localStorage.getItem(BEST_KEY) || 0; } catch { return 0; } };
 export const saveBestTime = t => { try { localStorage.setItem(BEST_KEY, t); } catch { } };
 export const fmtTime = t => (t / 60 | 0) + ':' + (t % 60 < 10 ? '0' : '') + (t % 60).toFixed(1);
@@ -46,10 +47,10 @@ export class LevelManager {
         }
 
         this.currentLevelIndex = index;
-        saveProgress(index);
         this.isVictory = false;
         this.victoryTimer = 0;
-        if (index === 0) this.playTime = 0;
+        this.playTime = index === 0 ? 0 : (+localStorage.getItem(TIME_KEY) || 0);
+        saveProgress(index, this.playTime);
         const level = getLevel(index);
 
         world.clearWorld();
@@ -77,6 +78,7 @@ export class LevelManager {
         if (this.currentLevelIndex + 1 < LEVELS.length) {
             this.showBanner('Level Complete!', 1.5);
             playLevelComplete();
+            saveProgress(this.currentLevelIndex + 1, this.playTime);
             setTimeout(() => this.loadLevel(this.currentLevelIndex + 1), 800);
         } else {
             this.isVictory = true;
