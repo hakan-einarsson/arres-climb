@@ -75,7 +75,6 @@ export class LevelManager {
         } else {
             this.isVictory = true;
             this.victoryTimer = 0;
-            this.showBanner('The sky is painted!', 6.0);
             playVictory();
         }
     }
