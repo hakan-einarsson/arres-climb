@@ -222,10 +222,10 @@ function getInputState() {
     const gp = getGamepadState();
 
     let moveX = 0, moveZ = 0;
-    if (keys['w']) moveZ += 1;
-    if (keys['s']) moveZ -= 1;
-    if (keys['a']) moveX -= 1;
-    if (keys['d']) moveX += 1;
+    if (keys['w'] || keys['arrowup']) moveZ++;
+    if (keys['s'] || keys['arrowdown']) moveZ--;
+    if (keys['a'] || keys['arrowleft']) moveX--;
+    if (keys['d'] || keys['arrowright']) moveX++;
 
     if (Math.abs(touchMoveX) > 0 || Math.abs(touchMoveZ) > 0) {
         moveX = touchMoveX;

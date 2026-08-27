@@ -10,16 +10,21 @@ export function getLevel(index) {
 }
 
 const SAVE_KEY = 'ac_lvl';
+const BEST_KEY = 'ac_best';
 
 export const getSavedLevel = () => { try { return +localStorage.getItem(SAVE_KEY) || 0; } catch { return 0; } };
 export const saveProgress = idx => { try { localStorage.setItem(SAVE_KEY, idx); } catch { } };
 export const resetProgress = () => { try { localStorage.removeItem(SAVE_KEY); } catch { } };
+export const getBestTime = () => { try { return +localStorage.getItem(BEST_KEY) || 0; } catch { return 0; } };
+export const saveBestTime = t => { try { localStorage.setItem(BEST_KEY, t); } catch { } };
+export const fmtTime = t => (t / 60 | 0) + ':' + (t % 60 < 10 ? '0' : '') + (t % 60).toFixed(1);
 
 export class LevelManager {
     constructor() {
         this.currentLevelIndex = 0;
         this.isVictory = false;
         this.victoryTimer = 0;
+        this.playTime = 0;
         this.bannerElement = typeof document !== 'undefined' ? document.getElementById('b') : null;
         this.bannerTimer = 0;
     }
@@ -44,6 +49,7 @@ export class LevelManager {
         saveProgress(index);
         this.isVictory = false;
         this.victoryTimer = 0;
+        if (index === 0) this.playTime = 0;
         const level = getLevel(index);
 
         world.clearWorld();
@@ -75,6 +81,10 @@ export class LevelManager {
         } else {
             this.isVictory = true;
             this.victoryTimer = 0;
+            const prev = getBestTime();
+            if (!prev || this.playTime < prev) saveBestTime(this.playTime);
+            const vt = document.getElementById('vt');
+            if (vt) vt.textContent = 'TIME: ' + fmtTime(this.playTime) + (prev && this.playTime >= prev ? ' (BEST: ' + fmtTime(prev) + ')' : ' - NEW RECORD!');
             playVictory();
         }
     }
@@ -104,6 +114,7 @@ export class LevelManager {
             return;
         }
 
+        this.playTime += dt;
         coin.update(dt);
 
         if (coin.checkCollision(player)) {

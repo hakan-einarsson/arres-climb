@@ -7,7 +7,7 @@ import { initPointer } from './input.js';
 import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
 import { unlockAudio } from './audio.js';
-import { getSavedLevel, levelManager, resetProgress } from './levelManager.js';
+import { getSavedLevel, levelManager, resetProgress, getBestTime, fmtTime } from './levelManager.js';
 import textureUrl from './assets/textures.png';
 
 ['pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, unlockAudio, { once: true }));
@@ -50,6 +50,13 @@ if (logoCvs) {
   img.src = textureUrl;
 }
 
+const updateBestDisplay = () => {
+  const b = getBestTime();
+  const bt = document.getElementById('bt');
+  if (bt) bt.textContent = b ? 'BEST TIME: ' + fmtTime(b) : '';
+};
+updateBestDisplay();
+
 const savedLvl = getSavedLevel();
 if (savedLvl > 0 && btnGroup && startBtn) {
   startBtn.textContent = `CONTINUE (LEVEL ${savedLvl + 1})`;
@@ -71,6 +78,7 @@ const endBtn = document.getElementById('eb');
 if (endBtn) {
   endBtn.onclick = () => {
     resetProgress();
+    updateBestDisplay();
     if (endScreen) endScreen.style.display = 'none';
     isGameStarted = false;
     levelManager.isVictory = false;
