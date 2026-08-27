@@ -5,6 +5,7 @@ import { levelManager } from './levelManager.js';
 
 class Renderer {
     constructor(canvas, camera, aspectRatio = 1.0) {
+        this.canvas = canvas;
         this.camera = camera;
         this.aspectRatio = aspectRatio;
         const gl = canvas.getContext('webgl2');
@@ -86,7 +87,13 @@ class Renderer {
 
     draw() {
         const gl = this.gl;
-        gl.clearColor(0.25, 0.3, 0.45, levelManager.isVictory ? 0 : 1);
+        if (levelManager.isVictory) {
+            gl.clearColor(0.25, 0.3, 0.45, 0);
+            this.canvas.style.background = 'linear-gradient(180deg,#0a1128,#f72585)';
+        } else {
+            gl.clearColor(0.25, 0.3, 0.45, 1);
+            if (this.canvas.style.background) this.canvas.style.background = '';
+        }
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.activeTexture(gl.TEXTURE0);
