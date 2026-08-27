@@ -55,6 +55,7 @@ function saveLevelsPlugin() {
 }
 
 export default defineConfig({
+  base: './',
   plugins: [saveLevelsPlugin()],
   build: {
     target: 'esnext',
@@ -88,6 +89,10 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html'
+      },
+      output: {
+        entryFileNames: '[name].js',
+        assetFileNames: '[name][extname]'
       }
     }
   }

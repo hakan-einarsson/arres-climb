@@ -25,7 +25,17 @@ async function prepareDist() {
         }
     }
 
-    // Case 2: Inlined JS in html
+    // Case 2: Separate JS in root dist
+    if (!jsCode && fs.existsSync(DIST_DIR)) {
+        const jsFiles = fs.readdirSync(DIST_DIR).filter(f => f.endsWith('.js'));
+        if (jsFiles.length > 0) {
+            const jsFile = jsFiles[0];
+            jsCode = fs.readFileSync(path.join(DIST_DIR, jsFile), 'utf8');
+            fs.unlinkSync(path.join(DIST_DIR, jsFile));
+        }
+    }
+
+    // Case 3: Inlined JS in html
     if (!jsCode) {
         const scriptMatch = html.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
         if (scriptMatch && scriptMatch[1].trim()) {
@@ -34,6 +44,10 @@ async function prepareDist() {
     }
 
     if (jsCode) {
+        // Fix relative asset paths if JS was inlined from a subdirectory
+        jsCode = jsCode.replace(/(["'])\.\.\/textures\.png\1/g, '$1./textures.png$1');
+        jsCode = jsCode.replace(/(["'])\/textures\.png\1/g, '$1./textures.png$1');
+
         console.log(`Original JS size: ${jsCode.length} bytes`);
         console.log('Packing JS with Roadroller...');
         const packer = new Packer([{ data: jsCode, type: 'js', action: 'eval' }], {});
