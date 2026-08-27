@@ -44,9 +44,11 @@ async function prepareDist() {
     }
 
     if (jsCode) {
-        // Fix relative asset paths if JS was inlined from a subdirectory
-        jsCode = jsCode.replace(/(["'])\.\.\/textures\.png\1/g, '$1./textures.png$1');
-        jsCode = jsCode.replace(/(["'])\/textures\.png\1/g, '$1./textures.png$1');
+        // Replace import.meta.url and relative URLs with simple static string
+        jsCode = jsCode.replace(/new URL\((['\"][^'\"]+['\"])\s*,\s*import\.meta\.url\)\.href/g, '$1');
+        jsCode = jsCode.replace(/(["'])\.\.\/textures\.png\1/g, '$1textures.png$1');
+        jsCode = jsCode.replace(/(["'])\/textures\.png\1/g, '$1textures.png$1');
+        jsCode = jsCode.replace(/(["'])\.\/textures\.png\1/g, '$1textures.png$1');
 
         console.log(`Original JS size: ${jsCode.length} bytes`);
         console.log('Packing JS with Roadroller...');
