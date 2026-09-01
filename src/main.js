@@ -123,6 +123,10 @@ function gameLoop(time) {
 
 init();
 
+if (typeof Wavedash !== 'undefined') {
+  Wavedash.init({ debug: false });
+}
+
 if (import.meta.env.DEV) {
   import('./devMode.js').then(({ devMode }) => {
     devMode.init();
