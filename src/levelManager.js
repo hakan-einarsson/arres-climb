@@ -41,7 +41,7 @@ export class LevelManager {
         }
     }
 
-    loadLevel(index = 0) {
+    loadLevel(index = 0, persist = true) {
         if (index < 0 || index >= LEVELS.length) {
             index = 0;
         }
@@ -49,8 +49,10 @@ export class LevelManager {
         this.currentLevelIndex = index;
         this.isVictory = false;
         this.victoryTimer = 0;
-        this.playTime = index === 0 ? 0 : (+localStorage.getItem(TIME_KEY) || 0);
-        saveProgress(index, this.playTime);
+        if (persist) {
+            this.playTime = index === 0 ? 0 : (+localStorage.getItem(TIME_KEY) || 0);
+            saveProgress(index, this.playTime);
+        }
         const level = getLevel(index);
 
         world.clearWorld();
