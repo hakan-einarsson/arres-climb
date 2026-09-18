@@ -3,11 +3,11 @@ video: https://youtu.be/iBstFRZtB9s
 # See github.com/js13kGames/hello-world for supported frontmatter
 ---
 
-A 3D isometric platforming adventure.
+A 3D platforming adventure.
 
 "Eleven coins can wake the unicorn who paints the sky. Help Arre climb and find them all."
 
-Guide Arre through 11 isometric levels to collect every coin and awaken the unicorn!
+Guide Arre through 11 levels to collect every coin and awaken the unicorn!
 
 Keyboard (Desktop)
 Move - W A S D or Arrow Keys
