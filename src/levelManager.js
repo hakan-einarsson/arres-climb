@@ -4,6 +4,7 @@ import { player } from './player.js';
 import { coin } from './coin.js';
 import { camera } from './camera.js';
 import { playLevelComplete, playVictory, playFall } from './audio.js';
+import { wdSaveCloud, wdSubmitScore, wdUnlockCompletion } from './wavedash.js';
 
 export function getLevel(index) {
     return LEVELS[index] || null;
@@ -14,7 +15,7 @@ const TIME_KEY = 'ac_time';
 const BEST_KEY = 'ac_best';
 
 export const getSavedLevel = () => { try { return +localStorage.getItem(SAVE_KEY) || 0; } catch { return 0; } };
-export const saveProgress = (idx, t = 0) => { try { localStorage.setItem(SAVE_KEY, idx); localStorage.setItem(TIME_KEY, t); } catch { } };
+export const saveProgress = (idx, t = 0) => { try { localStorage.setItem(SAVE_KEY, idx); localStorage.setItem(TIME_KEY, t); } catch { } wdSaveCloud(idx, t); };
 export const resetProgress = () => { try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(TIME_KEY); } catch { } };
 export const getBestTime = () => { try { return +localStorage.getItem(BEST_KEY) || 0; } catch { return 0; } };
 export const saveBestTime = t => { try { localStorage.setItem(BEST_KEY, t); } catch { } };
@@ -87,6 +88,10 @@ export class LevelManager {
             this.victoryTimer = 0;
             const prev = getBestTime();
             if (!prev || this.playTime < prev) saveBestTime(this.playTime);
+            console.log('Submitting score to Wavedash leaderboard');
+            wdSubmitScore(this.playTime);
+            wdUnlockCompletion(this.playTime);
+            resetProgress();
             const vt = document.getElementById('vt');
             if (vt) vt.textContent = 'TIME: ' + fmtTime(this.playTime) + (prev && this.playTime >= prev ? ' (BEST: ' + fmtTime(prev) + ')' : ' - NEW RECORD!');
             playVictory();

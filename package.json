@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/zip.js",
+    "build:wavedash": "vite build --mode wavedash",
     "zip": "node scripts/zip.js",
     "preview": "vite preview"
   },

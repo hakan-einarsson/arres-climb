@@ -7,7 +7,8 @@ import { initPointer } from './input.js';
 import { addGameObject } from './gameObjects.js';
 import { player } from './player.js';
 import { unlockAudio } from './audio.js';
-import { getSavedLevel, levelManager, resetProgress, getBestTime, fmtTime } from './levelManager.js';
+import { getSavedLevel, levelManager, resetProgress, saveProgress, getBestTime, fmtTime } from './levelManager.js';
+import { wdInit, wdLoadCloud } from './wavedash.js';
 import textureUrl from './assets/textures.png';
 
 ['pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, unlockAudio, { once: true }));
@@ -58,20 +59,33 @@ const updateBestDisplay = () => {
 updateBestDisplay();
 
 const savedLvl = getSavedLevel();
-if (savedLvl > 0 && btnGroup && startBtn) {
-  startBtn.textContent = `CONTINUE (LEVEL ${savedLvl + 1})`;
-  const newGameBtn = document.createElement('button');
-  newGameBtn.className = 'btn btn-s';
-  newGameBtn.textContent = 'NEW GAME';
-  newGameBtn.onclick = () => {
-    resetProgress();
-    startGame(0);
-  };
-  btnGroup.appendChild(newGameBtn);
-  startBtn.onclick = () => startGame(savedLvl);
-} else if (startBtn) {
-  startBtn.onclick = () => startGame(0);
+let newGameBtn = null;
+
+function setupContinueButton(lvl) {
+  if (!btnGroup || !startBtn) return;
+  if (lvl > 0) {
+    startBtn.textContent = `CONTINUE (LEVEL ${lvl + 1})`;
+    if (!newGameBtn) {
+      newGameBtn = document.createElement('button');
+      newGameBtn.className = 'btn btn-s';
+      newGameBtn.textContent = 'NEW GAME';
+      newGameBtn.onclick = () => {
+        resetProgress();
+        startGame(0);
+      };
+      btnGroup.appendChild(newGameBtn);
+    }
+    startBtn.onclick = () => startGame(lvl);
+  } else {
+    startBtn.textContent = 'START';
+    if (newGameBtn) {
+      newGameBtn.remove();
+      newGameBtn = null;
+    }
+    startBtn.onclick = () => startGame(0);
+  }
 }
+setupContinueButton(savedLvl);
 
 const endScreen = document.getElementById('es');
 const endBtn = document.getElementById('eb');
@@ -82,7 +96,7 @@ if (endBtn) {
     if (endScreen) endScreen.style.display = 'none';
     isGameStarted = false;
     levelManager.isVictory = false;
-    if (startBtn) startBtn.textContent = 'START';
+    setupContinueButton(getSavedLevel());
     if (titleScreen) titleScreen.style.display = 'flex';
     levelManager.loadLevel(0);
   };
@@ -123,9 +137,13 @@ function gameLoop(time) {
 
 init();
 
-if (typeof Wavedash !== 'undefined') {
-  Wavedash.init({ debug: false });
-}
+wdInit();
+wdLoadCloud().then(cloud => {
+  if (cloud && cloud.level > getSavedLevel() && !isGameStarted) {
+    saveProgress(cloud.level, cloud.playTime);
+    setupContinueButton(cloud.level);
+  }
+});
 
 if (import.meta.env.DEV) {
   import('./devMode.js').then(({ devMode }) => {

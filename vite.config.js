@@ -54,46 +54,56 @@ function saveLevelsPlugin() {
   };
 }
 
-export default defineConfig({
-  base: './',
-  plugins: [saveLevelsPlugin()],
-  build: {
-    target: 'esnext',
-    assetsInlineLimit: 0,
-    minify: 'terser',
-    terserOptions: {
-      ecma: 2020,
-      module: true,
-      toplevel: true,
-      compress: {
-        passes: 5,
-        unsafe: true,
-        unsafe_arrows: true,
-        unsafe_methods: true,
-        unsafe_proto: true,
-        unsafe_math: true,
-        booleans_as_integers: true,
-        hoist_vars: true,
-        drop_console: true,
-        drop_debugger: true,
-        pure_getters: true,
-      },
-      mangle: {
+export default defineConfig(({ mode }) => {
+  // The "wavedash" mode builds for the Wavedash platform, which has no
+  // js13k byte budget. It skips the booleans_as_integers optimization
+  // because the Wavedash SDK strictly type-checks boolean parameters
+  // (e.g. uploadLeaderboardScore's keepBest, setAchievement's storeNow)
+  // and rejects 1/0 in place of true/false.
+  const isWavedash = mode === 'wavedash';
+
+  return {
+    base: './',
+    plugins: [saveLevelsPlugin()],
+    build: {
+      outDir: isWavedash ? 'dist-wavedash' : 'dist',
+      target: 'esnext',
+      assetsInlineLimit: 0,
+      minify: 'terser',
+      terserOptions: {
+        ecma: 2020,
+        module: true,
         toplevel: true,
+        compress: {
+          passes: 5,
+          unsafe: true,
+          unsafe_arrows: true,
+          unsafe_methods: true,
+          unsafe_proto: true,
+          unsafe_math: true,
+          booleans_as_integers: !isWavedash,
+          hoist_vars: true,
+          drop_console: true,
+          drop_debugger: true,
+          pure_getters: true,
+        },
+        mangle: {
+          toplevel: true,
+        },
+        format: {
+          comments: false,
+        },
       },
-      format: {
-        comments: false,
-      },
-    },
-    modulePreload: false,
-    rollupOptions: {
-      input: {
-        main: './index.html'
-      },
-      output: {
-        entryFileNames: '[name].js',
-        assetFileNames: '[name][extname]'
+      modulePreload: false,
+      rollupOptions: {
+        input: {
+          main: './index.html'
+        },
+        output: {
+          entryFileNames: '[name].js',
+          assetFileNames: '[name][extname]'
+        }
       }
     }
-  }
+  };
 });
