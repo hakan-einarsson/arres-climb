@@ -1,12 +1,19 @@
 # Copilot Instructions for 3D Game
 
-A 3D isometric game for js13kgames competition using WebGL2 and custom software rendering.
+A 3D isometric game using WebGL2 and custom software rendering. Originally built
+for the js13kGames competition and now developed further and published on Wavedash.
+
+> **The 13 KB js13kGames size limit no longer applies.** Do not propose size
+> micro-optimizations, byte-budget tradeoffs, or minification work unless the
+> user explicitly asks for it. Optimize for correctness, readability and game
+> feel instead.
 
 ## Build & Run Commands
 
 - **Development server**: `npm run dev` - Starts Vite dev server on http://localhost:5173
-- **Build for production**: `npm run build` - Creates optimized bundle in `dist/`
+- **Build for Wavedash**: `npm run build:wavedash` - Creates the deployment bundle in `dist-wavedash/`
 - **Preview production build**: `npm run preview` - Test the optimized build locally
+- **LEGACY (js13k)**: `npm run build` - Minifies with Terser and packs with Roadroller into `dist/index.zip`. Kept only for historical reference; the 13 KB budget no longer applies.
 
 No dedicated linting, testing, or formatting tools are configured. Focus on code quality during development.
 

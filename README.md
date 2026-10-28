@@ -1,6 +1,11 @@
 # Arre's Climb
 
-A 3D isometric platforming adventure built for the **[js13kGames](https://js13kgames.com/)** competition (zipped package ≤ 13 KB).
+A 3D isometric platforming adventure, originally created for the **[js13kGames](https://js13kgames.com/)** competition and now developed further and published on **Wavedash**.
+
+> **Note:** The original 13 KB competition limit no longer applies. The game is not
+> constrained by size anymore, so optimizations should be chosen for quality and
+> maintainability rather than to fit a byte budget. The legacy 13 KB build script
+> is kept only for historical reference (see [Development & Build](#development--build)).
 
 ---
 
@@ -62,7 +67,7 @@ The project includes an in-browser level editor:
 * **Custom WebGL2 Rendering Engine**: Lightweight shader-based renderer with perspective isometric projection, depth sorting, and sprite atlas sampling.
 * **Audio Engine**: Inlined ZzFX micro-synthesizer paired with a procedural 4-channel chiptune music engine (Bass, Arpeggios, Lead, Drums).
 * **Zero External Runtime Dependencies**: Pure vanilla JavaScript and WebGL2.
-* **Size Optimization**: Minified with aggressive Terser rules and packed with **Roadroller** to fit under 13,312 bytes.
+* **Legacy Size Optimization**: The js13kGames submission was minified with aggressive Terser rules and packed with **Roadroller** to fit under 13,312 bytes. This is no longer a requirement and is retained only in the legacy `npm run build` path.
 
 ---
 
@@ -75,11 +80,19 @@ npm install
 # Start local dev server (Game: index.html, Editor: editor.html)
 npm run dev
 
-# Build and package the production zip (dist/index.zip)
-npm run build
+# Build for Wavedash (dist-wavedash/) — this is the live deployment target
+npm run build:wavedash
 
 # Preview production build locally
 npm run preview
+
+# LEGACY: build the old js13kGames zip (dist/index.zip)
+# Kept only for reference; the 13 KB budget no longer applies.
+npm run build
 ```
+
+> **Deployment:** The game is published on Wavedash from the `wavedash-version`
+> branch. Use `npm run build:wavedash`, which skips the `booleans_as_integers`
+> minification because the Wavedash SDK type-checks boolean arguments.
 
 ---

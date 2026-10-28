@@ -1,6 +1,8 @@
 # Arre's Climb — spelsammanfattning
 
-Ett litet 3D js13k-plattformsspel (WebGL2, egen minimal engine). Spelaren
+Ett litet 3D-plattformsspel (WebGL2, egen minimal engine), ursprungligen
+skapat för js13kGames och nu vidareutvecklat och publicerat på Wavedash.
+Spelaren
 klättrar genom en procedurellt genererad (Perlin noise + seed), voxelaktig
 ö-bana bestående av block. Varje bana har exakt ett mål: hitta
 enhörningsmyntet. Presentation: tredje person, billboard-sprite
@@ -11,9 +13,10 @@ Perlin-genereringen) plus en liten lista med manuella modifieringar
 (block borttagna/tillagda utöver det som genereras) för att finslipa
 layouten till nåt faktiskt pussligt och klarbart.
 
-Det finns en editor för att göra banor. Allt relevant finns i src/editor, och den är fristående från spelet (ingen editor-specifik kod hamnar i js13k-bygget).
+Det finns en editor för att göra banor. Allt relevant finns i src/editor, och den är fristående från spelet (ingen editor-specifik kod hamnar i spelbygget).
 
-Just nu bygger vi spelet. Vi försöker optimera storlek när spelet är i mer eller mindre klart skick.
-
-Spelet får inte bli större än 13 kB (inklusive allt, även ljud och musik). Vi har redan gjort en hel del optimering i storlek, men det finns mer att göra. Vi har en lista med buggar och features
+Spelet är inte längre bundet av 13 kB-gränsen från js13kGames. Den gäller inte
+längre och ska inte styra utvecklingen: välj lösningar efter kvalitet och
+underhållbarhet, inte efter storlek. Det gamla js13k-zipbygget finns kvar som
+referens men används inte för den publicerade versionen (se README).
 

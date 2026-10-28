@@ -1,0 +1,11 @@
+# Normalize all text files to LF in the repository and working tree.
+# This avoids CRLF/LF-only diffs between Windows and other platforms.
+* text=auto eol=lf
+
+# Explicitly binary assets (never normalize or diff as text).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.zip binary
+*.ico binary
